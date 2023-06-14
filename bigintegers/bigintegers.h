@@ -178,7 +178,6 @@ BigInteger powerOfBigIntegers(BigInteger n1, BigInteger n2);
 */
 void shiftBigIntegerToRightNumberOfDigits(BigInteger n, DIGIT ndigits);
 void shiftBigIntegerToRightNumberOfBits(BigInteger n, DIGIT nbits);
-uint8_t findFirstDigitForDivisionAlgorithm(BigInteger t1, BigInteger t2,DIGIT *m);
 uint8_t findFirstDigitByBisection(BigInteger t1, BigInteger t2,DIGIT *m);
 BigInteger divideBigIntegerByPowerOfTwo(BigInteger n, DIGIT power);
 BigInteger remainderOfBigIntegerDividedByPowerOfTwo(BigInteger n, DIGIT power);

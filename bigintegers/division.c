@@ -175,63 +175,6 @@ final:
 	return value;
 }
 
-uint8_t findFirstDigitForDivisionAlgorithm(BigInteger t1, BigInteger t2,DIGIT *m)
-/*
-	Finds th firs digit m, starting at the value passed as parameter,
-	such that m*t2 < t1 and modifies the value of *m.
-*/
-{
-	uint8_t value = 0;
-	DIGIT dm;
-	BigInteger dt, t3;
-	dt = t3 = NULL;
-	dm = *m;
-
-	if ((t3 = cloneBigInteger(t2)) == NULL)
-		goto final;
-	if (! multiplyBigIntegerByDigit(t3,*m))
-		goto final;
-	if (compareBigIntegerAbsoluteValues(t3,t1) < 0 )
-	{
-		value = 1;
-		goto final;
-	}
-	if ((dt = cloneBigInteger(t3)) == NULL)
-		goto final;
-	while ((compareBigIntegerAbsoluteValues(t3,t1) > 0) && (dm > 0))
-	{
-		dm /= 2;
-		shiftBigIntegerToRightNumberOfBits(dt,1);
-
-		while (compareBigIntegerAbsoluteValues(t3,t1) > 0)
-		{
-			(*m) -= dm;
-			if (! subtrackAtPositionToBigInteger(t3, (DIGIT)1, dt,(DIGIT)0))
-				goto final;
-		}
-		(*m) += dm;
-		if (! addAtPositionToBigInteger(t3, (DIGIT)1, dt,(DIGIT)0))
-			goto final;
-	}
-	freeBigInteger(t3);
-	if ((t3 = cloneBigInteger(t2)) == NULL)
-		goto final;
-	if (! multiplyBigIntegerByDigit(t3,*m))
-		goto final;
-	while (compareBigIntegerAbsoluteValues(t3,t1) > 0)
-	{
-		(*m) -= 1;
-		if (! subtrackAtPositionToBigInteger(t3, (DIGIT)1, t2,(DIGIT)0))
-			goto final;
-	}
-	value = 1;
-
-final:
-	freeBigInteger(t3);
-	freeBigInteger(dt);	
-	return value;
-}
-
 BigInteger remainderOfBigIntegerDividedByPowerOfTwo(BigInteger n, DIGIT power)
 /*
   Returns n % (2^power)
@@ -376,9 +319,7 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
   Alfred J. Menezes, Paul C. van Oorschot and Scott A. Vanstone, pag. 598.
 
   If the base b is very large, i. e. b = 2^64, the step 3.2 is extremely slow. I wrote
-  the function
-  findFirstDigitForDivisionAlgorithm(BigInteger t1, BigInteger t2,DIGIT *m);
-  to accelerate the process.
+  the function findFirstDigitByBisection to accelerate the process.
 */
 {
 	BigInteger x;
@@ -463,7 +404,7 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 			if (! shiftBigIntegerToLeftNumberOfBits(t2, 1))
 				goto final;
 		}
-		if (! findFirstDigitForDivisionAlgorithm(x,t1,&((*q)->digits[n-t])))
+		if (! findFirstDigitByBisection(x,t1,&((*q)->digits[n-t])))
 			goto final;
 		
 		if (! subtrackAtPositionToBigInteger(x, (*q)->digits[n-t], n2, n-t))  
