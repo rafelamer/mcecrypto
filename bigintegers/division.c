@@ -332,8 +332,8 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
   the function findFirstDigitByBisection to accelerate the process.
 */
 {
-	BigInteger x;
-	x = NULL;
+	BigInteger x, t1, t2;
+	x = t1 = t2 = NULL;
 	size_t i, n, t;
 	int cmp;
 	/*
@@ -400,7 +400,6 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 	*/
 	if ( compareBigIntegerAbsoluteValuesAtPosition(x, n2, n - t) >= 0)
 	{
-		BigInteger t1, t2;
 		if ((t2 = cloneBigInteger(n2)) == NULL)
 			goto final; 
 		if (! shiftBigIntegerToLeftNumberOfDigits(t2,n-t))
@@ -416,9 +415,8 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 		}
 		if (! findFirstDigitByBisection(x,t1,&((*q)->digits[n-t])))
 			goto final;
-		
-		if (! subtrackAtPositionToBigInteger(x, (*q)->digits[n-t], n2, n-t))  
-            goto final;
+			if (! subtrackAtPositionToBigInteger(x, (*q)->digits[n-t], n2, n-t))  
+            	goto final;
 		freeBigInteger(t1);
 		freeBigInteger(t2);
 	}
@@ -432,8 +430,8 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 			Step 3.1
 		*/
     	if (x->digits[i] == n2->digits[t])
-    	{
-        	(*q)->digits[i-t-1] = MAX_DIGIT - 1;
+		{
+    		(*q)->digits[i-t-1] = MAX_DIGIT - 1;
     	}
     	else
 		{
@@ -442,21 +440,18 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 			z |= (DOUBLEDIGIT) (x->digits[i - 1]);
 			z /= n2->digits[t];
 			(*q)->digits[i-t-1] = LOHALF(z);
-			
 		}
 		/*
 			Step 3.2	
 		*/
-		{
-			BigInteger t1, t2;
-			if ((t1 = clonePartOfBigInteger(x,i,3)) == NULL)
-				goto final;
-			if ((t2 = clonePartOfBigInteger(n2,t,2)) == NULL)
-				goto final;	
-			if (! findFirstDigitByBisection(t1,t2, &((*q)->digits[i-t-1])))
-				goto final;
-			freeBigInteger(t2);
-			freeBigInteger(t1);
+		if ((t1 = clonePartOfBigInteger(x,i,3)) == NULL)
+			goto final;
+		if ((t2 = clonePartOfBigInteger(n2,t,2)) == NULL)
+			goto final;	
+		if (! findFirstDigitByBisection(t1,t2, &((*q)->digits[i-t-1])))
+			goto final;
+		freeBigInteger(t2);
+		freeBigInteger(t1);
 		}	
 		/*
 			Step 3.3
@@ -472,8 +467,9 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 				goto final;
 			(*q)->digits[i-t-1] -= 1;
 			x->sign = 1;
-		}
+		}			
 	}
+
 	if (n1->sign == 1 && n2->sign == 1)
 		return x;
 	if (n1->sign == -1)
@@ -487,11 +483,15 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 	}
 	if(n2->sign == -1)
 		(*q)->sign = -1;
+	freeBigInteger(t1);
+	freeBigInteger(t2);
 	return x;
 
 final:
 	freeBigInteger(*q);
 	freeBigInteger(x);
+	freeBigInteger(t1);
+	freeBigInteger(t2);
 	return NULL;
 }
 

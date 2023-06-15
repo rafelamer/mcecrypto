@@ -98,13 +98,13 @@ BigInteger cloneBigInteger(BigInteger n)
 BigInteger clonePartOfBigInteger(BigInteger n,size_t pos,size_t len)
 {
 	BigInteger m;
-	if (len > pos + 1)
-		return NULL;
 	if (pos > n->used)
 		return NULL;
+	if (len > pos + 1)
+		len = pos + 1;		
 	if ((m = initBigInteger(len + 8)) == NULL)
 		return NULL;
-	memcpy(m->digits,n->digits + pos - len + 1,len * sizeof(DIGIT));
+	memcpy(m->digits,n->digits + pos + 1 - len,len * sizeof(DIGIT));
 	m->used = len;
 	return m;
 }
