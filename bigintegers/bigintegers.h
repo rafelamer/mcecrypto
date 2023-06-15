@@ -34,7 +34,7 @@
 #define H_BIGINTEGERS_H_ 1
 
 #define DIGIT unsigned long long int
-#define ALLOCSIZE 256
+#define ALLOCSIZE 32
 #define BYTES_PER_DIGIT 8
 #define BITS_PER_DIGIT 64
 #define MAX_DIGIT 0xFFFFFFFFFFFFFFFFUL
@@ -249,10 +249,12 @@ EllipticCurvePoint initEllipticCurvePoint(BigInteger x, BigInteger y, EllipticCu
 EllipticCurvePoint cloneEllipticCurvePoint(EllipticCurvePoint P);
 int areEqualEllipticCurvePoints(EllipticCurvePoint P,EllipticCurvePoint Q,BigInteger *n,BigInteger *d,EllipticCurve ec,uint8_t *error);
 EllipticCurvePoint addEllipticCurvePoints(EllipticCurvePoint P,EllipticCurvePoint Q,EllipticCurve ec);
+uint8_t doubleEllipticCurvePoint(EllipticCurvePoint P,EllipticCurve ec);
 EllipticCurvePoint multiplyEllipticCurvePointByPowerOfTwo(EllipticCurvePoint P,DIGIT power,EllipticCurve ec);
 EllipticCurvePoint multiplyEllipticCurvePointByBigInteger(EllipticCurvePoint P,BigInteger n,EllipticCurve ec);
 BigInteger rightHandWeierstrassEquation(BigInteger x,EllipticCurve ec);
 EllipticCurvePoint randomEllipticCurvePoint(EllipticCurve ec);
+BigInteger orderOfEllipticCurvePoint(EllipticCurvePoint P,EllipticCurve ec);
 void printEllipticCurvePointInBase(EllipticCurvePoint P,DIGIT b);
 void printEllipticCurvePoint(EllipticCurvePoint P);
 

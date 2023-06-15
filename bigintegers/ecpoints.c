@@ -1,5 +1,5 @@
 /**************************************************************************************
-* Filename:   ecpointoperations.c
+* Filename:   ecpoints.c
 * Author:     Rafel Amer (rafel.amer AT upc.edu)
 * Copyright:  Rafel Amer 2018-2023
 * Disclaimer: This code is presented "as is" and it has been written to 
@@ -158,24 +158,24 @@ EllipticCurvePoint addEllipticCurvePoints(EllipticCurvePoint P,EllipticCurvePoin
             error = 0;
             if((m = modulusOfProductOfBigInteger(a, binv, prime)) == NULL)
                 goto final;
-            if ((R->x = multiplyTwoBigIntegers(m,m)) == NULL)
+            if ((R->x = multiplyTwoBigIntegers(m, m)) == NULL)
                 goto final;
-            if (!subtrackAtPositionToBigInteger(R->x,(DIGIT)1,P->x,(DIGIT)0))
+            if (!subtrackAtPositionToBigInteger(R->x, (DIGIT)1, P->x, (DIGIT)0))
                 goto final;
-            if (!subtrackAtPositionToBigInteger(R->x,(DIGIT)1,Q->x,(DIGIT)0))
+            if (!subtrackAtPositionToBigInteger(R->x, (DIGIT)1, Q->x, (DIGIT)0))
                 goto final;
-            if (!normalizeBigIntegerModulus(&(R->x),prime))
+            if (!normalizeBigIntegerModulus(&(R->x), prime))
 		        goto final;
-            if ((aux = subtrackBigIntegers(R->x,P->x)) == NULL)
+            if ((aux = subtrackBigIntegers(R->x, P->x)) == NULL)
                 goto final;
-            if (!normalizeBigIntegerModulus(&aux,prime))
+            if (!normalizeBigIntegerModulus(&aux, prime))
 		        goto final; 
-            if ((R->y = multiplyTwoBigIntegers(aux,m)) == NULL)
+            if ((R->y = multiplyTwoBigIntegers(aux, m)) == NULL)
                 goto final;
-            if (!addAtPositionToBigInteger(R->y,(DIGIT)1,P->y,(DIGIT)0))
+            if (!addAtPositionToBigInteger(R->y, (DIGIT)1, P->y, (DIGIT)0))
                 goto final;
             R->y->sign *= -1;
-            if (!normalizeBigIntegerModulus(&(R->y),prime))
+            if (!normalizeBigIntegerModulus(&(R->y), prime))
 		        goto final;
             goto result;
         }
@@ -211,36 +211,37 @@ EllipticCurvePoint addEllipticCurvePoints(EllipticCurvePoint P,EllipticCurvePoin
                 goto final;
             error = 0;
             freeBigInteger(b);
-            if ((a = modulusOfProductOfBigInteger(P->x,P->x, prime)) == NULL)
+            if ((a = modulusOfProductOfBigInteger(P->x, P->x, prime)) == NULL)
                 goto final;
-            if (!multiplyBigIntegerByDigit(a,(DIGIT)3))
+            if (!multiplyBigIntegerByDigit(a, (DIGIT)3))
                 goto final;
-            if (!addAtPositionToBigInteger(a,(DIGIT)1,ec->a,(DIGIT)0))
+            if (!addAtPositionToBigInteger(a, (DIGIT)1, ec->a, (DIGIT)0))
                 goto final;
-            if ((m = modulusOfProductOfBigInteger(a,binv,prime)) == NULL)
+            if ((m = modulusOfProductOfBigInteger(a, binv, prime)) == NULL)
                 goto final;
-            if ((R->x = multiplyTwoBigIntegers(m,m)) == NULL)
+            if ((R->x = multiplyTwoBigIntegers(m, m)) == NULL)
                 goto final;
-            if (!subtrackAtPositionToBigInteger(R->x,(DIGIT)1,P->x,(DIGIT)0))
+            if (!subtrackAtPositionToBigInteger(R->x, (DIGIT)1, P->x, (DIGIT)0))
                 goto final;
-            if (!subtrackAtPositionToBigInteger(R->x,(DIGIT)1,P->x,(DIGIT)0))
+            if (!subtrackAtPositionToBigInteger(R->x, (DIGIT)1, P->x, (DIGIT)0))
                 goto final;    
-            if (!normalizeBigIntegerModulus(&(R->x),prime))
+            if (!normalizeBigIntegerModulus(&(R->x), prime))
 		        goto final;     
-            if ((aux = subtrackBigIntegers(R->x,P->x)) == NULL)
+            if ((aux = subtrackBigIntegers(R->x, P->x)) == NULL)
                 goto final;
-            if (!normalizeBigIntegerModulus(&aux,prime))
+            if (!normalizeBigIntegerModulus(&aux, prime))
 		        goto final; 
-            if ((R->y = multiplyTwoBigIntegers(aux,m)) == NULL)
+            if ((R->y = multiplyTwoBigIntegers(aux, m)) == NULL)
                 goto final;
-            if (!addAtPositionToBigInteger(R->y,(DIGIT)1,P->y,(DIGIT)0))
+            if (!addAtPositionToBigInteger(R->y, (DIGIT)1, P->y, (DIGIT)0))
                 goto final;
             R->y->sign *= -1;
-            if (!normalizeBigIntegerModulus(&(R->y),prime))
+            if (!normalizeBigIntegerModulus(&(R->y), prime))
 		        goto final;
             goto result;
         }
     }
+
 result:
     freeBigInteger(a);
     freeBigInteger(b);
@@ -257,6 +258,69 @@ final:
     freeBigInteger(m);
     freeEllipticCurvePoint(R);
     return NULL;
+}
+
+uint8_t doubleEllipticCurvePoint(EllipticCurvePoint P,EllipticCurve ec)
+{
+    int8_t error = 1;
+    BigInteger a, b, binv, m, prime, x, y;
+    a = b = binv = m = prime = x = y = NULL;
+    prime = ec->p;
+
+    if ((a = cloneBigInteger(P->y)) == NULL)
+        goto final;
+    if (!multiplyBigIntegerByDigit(a, (DIGIT)2))
+        goto final;
+    if ((binv = modularInverseOfBigInteger(a, prime, &error)) == NULL)
+        goto final;
+    error = 1;
+    freeBigInteger(a);
+    if ((a = modulusOfProductOfBigInteger(P->x, P->x, prime)) == NULL)
+        goto final;
+    if (!multiplyBigIntegerByDigit(a, (DIGIT)3))
+        goto final;
+    if (!addAtPositionToBigInteger(a, (DIGIT)1, ec->a, (DIGIT)0))
+        goto final;
+    if ((m = modulusOfProductOfBigInteger(a, binv, prime)) == NULL)
+        goto final;
+    if ((x = multiplyTwoBigIntegers(m,m)) == NULL)
+        goto final;
+    if (!subtrackAtPositionToBigInteger(x, (DIGIT)1, P->x, (DIGIT)0))
+        goto final;
+    if (!subtrackAtPositionToBigInteger(x, (DIGIT)1, P->x, (DIGIT)0))
+        goto final;    
+    if (!normalizeBigIntegerModulus(&x, prime))
+		goto final;     
+    if ((b = subtrackBigIntegers(x, P->x)) == NULL)
+        goto final;
+    if (!normalizeBigIntegerModulus(&a,prime))
+		goto final; 
+    if ((y = multiplyTwoBigIntegers(a,m)) == NULL)
+        goto final;
+    if (!addAtPositionToBigInteger(y, (DIGIT)1, P->y, (DIGIT)0))
+        goto final;
+    y->sign *= -1;
+    if (!normalizeBigIntegerModulus(&y, prime))
+		goto final; 
+    error = 0;
+
+final:
+    freeBigInteger(a);
+    freeBigInteger(binv);
+    freeBigInteger(m);
+    if (error == 1)
+    {
+        freeBigInteger(x);
+        freeBigInteger(y);
+        return 0;
+    }
+    freeBigInteger(P->x);
+    P->x = x;
+    freeBigInteger(P->y);
+    P->y = y;
+    if(sizeOfBigInteger(P->y) == 0)
+        P->is_infinity = 1;
+    return 1;
 }
 
 EllipticCurvePoint multiplyEllipticCurvePointByPowerOfTwo(EllipticCurvePoint P,DIGIT power,EllipticCurve ec)
@@ -279,6 +343,7 @@ EllipticCurvePoint multiplyEllipticCurvePointByPowerOfTwo(EllipticCurvePoint P,D
     }
     return R;
 }
+
 EllipticCurvePoint multiplyEllipticCurvePointByBigInteger(EllipticCurvePoint P,BigInteger n, EllipticCurve ec)
 {
     EllipticCurvePoint R;
@@ -298,15 +363,15 @@ EllipticCurvePoint multiplyEllipticCurvePointByBigInteger(EllipticCurvePoint P,B
 	EllipticCurvePoint *g;
 	size_t i;
 	if ((g = (EllipticCurvePoint *)calloc(256,sizeof(EllipticCurvePoint *))) == NULL)
-		goto FINAL;
+		goto final;
 	g[0] = R;
 	if ((g[1] = cloneEllipticCurvePoint(P)) == NULL)
-		goto FINAL;
+		goto final;
 	if ((g[2] = addEllipticCurvePoints(g[1],g[1],ec)) == NULL)
-		goto FINAL;
+		goto final;
 	for (i = 1; i < 128; i++)
 		if ((g[2*i + 1] = addEllipticCurvePoints(g[2*i - 1],g[2],ec)) == NULL)
-			goto FINAL;
+			goto final;
 
     if ((R = (EllipticCurvePoint) calloc(1,sizeof(elliptic_curve_point))) == NULL)
         return NULL;
@@ -323,11 +388,11 @@ EllipticCurvePoint multiplyEllipticCurvePointByBigInteger(EllipticCurvePoint P,B
         obit = nbits;
 		part = nextSlidiwinWindowInBigInteger(n, &nbits, 8, &error);
 		if (error == 1)
-            goto FINAL;
+            goto final;
         if ((aux = multiplyEllipticCurvePointByPowerOfTwo(R,obit - nbits,ec)) == NULL)
 		{
 			error = 1;
-			goto FINAL;
+			goto final;
 		}
 		freeEllipticCurvePoint(R);
         R = aux;
@@ -336,14 +401,14 @@ EllipticCurvePoint multiplyEllipticCurvePointByBigInteger(EllipticCurvePoint P,B
 			if ((aux = addEllipticCurvePoints(R,g[part],ec)) == NULL)
 			{
 				error = 1;
-				goto FINAL;
+				goto final;
 			}
 			freeEllipticCurvePoint(R);
 			R = aux;
 		}
 	} 
 
-FINAL:
+final:
 	for (i = 0; i < 256; i++)
 		freeEllipticCurvePoint(g[i]);	
 	free(g);
@@ -439,6 +504,31 @@ error:
     freeBigInteger(res);
     freeBigInteger(exp);
     return NULL;
+}
+
+BigInteger orderOfEllipticCurvePoint(EllipticCurvePoint P,EllipticCurve ec)
+{
+    BigInteger z;
+    EllipticCurvePoint Q;
+    uint8_t error = 1;
+    if ((z = initBigInteger(ALLOCSIZE)) == NULL)
+        goto final;
+    if ((Q = cloneEllipticCurvePoint(P)) == NULL)
+        goto final;
+    while (Q->is_infinity == 0)
+    {
+        if (! doubleEllipticCurvePoint(Q,ec))
+            goto final;
+        if (! shiftBigIntegerToLeftNumberOfBits(z, (DIGIT)1))
+            goto final;
+    }
+    error = 0;
+    
+final:
+    freeEllipticCurvePoint(Q);
+    if (error == 1)
+        freeBigInteger (z);
+    return z;
 }
 
 void  printEllipticCurvePointInBase(EllipticCurvePoint P,DIGIT b)
