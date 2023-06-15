@@ -6,7 +6,9 @@ else
 CC = gcc
 endif
 
-OBJECTS = utils.o addition.o multiplication.o karatsuba.o toomcook.o division.o modular.o gcd.o ec.o ecpoints.o slidingwindow.o
+OBJECTS = utils.o addition.o multiplication.o karatsuba.o toomcook.o division.o \
+		  modular.o gcd.o ec.o ecpoints.o slidingwindow.o primes.o
+
 INCLUDES = bigintegers.h
 TARGET = libbigintegers.so.1.0.0
 NAME1 = libbigintegers.so.1

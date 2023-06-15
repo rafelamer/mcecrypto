@@ -26,18 +26,7 @@
 #include <stdlib.h>
 #include <primes2000.h>
 
-
-int8_t isBigIntegerDivisibleByDigit(BigInteger n, DIGIT m)
-{
-	DIGIT r;
-	if (!divideBigIntegerByDigit(n, m, &r))
-		return -1;
-	if (*r == 0)
-		return 1;
-	return 0;
-}
-
-int8_t isBigIntegerDivisibleBySmallPrime(BigInteger n)
+int isBigIntegerDivisibleBySmallPrime(BigInteger n)
 {
 	size_t i;
 	for (i = 0; i < sizeSmallPrimes; i++)
@@ -45,14 +34,14 @@ int8_t isBigIntegerDivisibleBySmallPrime(BigInteger n)
 		DIGIT p;
 		int8_t r;
 		p = (DIGIT)(smallPrimes[i]);
-		r = isBigIntegerDivisibleByDigit(n, p)
+		r = isBigIntegerDivisibleByDigit(n, p);
 		if (r != 0)
 			return r;
 	}
 	return 0;
 }
 
-int8_t rabinMillerTestForBigInteger(BigInteger n)
+int rabinMillerTestForBigInteger(BigInteger n, size_t iterations)
 /*
   See A Handbook Of Applied Cryptography 
   Alfred J. Menezes, Paul C. van Oorschot and Scott A. Vanstone
@@ -60,11 +49,6 @@ int8_t rabinMillerTestForBigInteger(BigInteger n)
   Pag 138-140
 */
 {
-	int8_t r;
-	r = isBigIntegerDivisibleBySmallPrime(n);
-	if (r != 0)
-		return r;
-
 	BigInteger a, m, z;
 	size_t b, i, j;
 	int8_t r;
@@ -73,7 +57,7 @@ int8_t rabinMillerTestForBigInteger(BigInteger n)
 		Step 1
 		Obtain the largest b such that n - 1 = 2^b * m
 	*/
-	if ((m = isBigIntegerDivisibleBySmallPrime(n)) == NULL)
+	if ((m = cloneBigInteger(n)) == NULL)
 	{
 		r = -1;
 		goto final;
@@ -110,7 +94,7 @@ int8_t rabinMillerTestForBigInteger(BigInteger n)
 			Step 2.2
 			Compute z = a^m mod (n)
 		*/
-		if ((z = bdModExponentialBD(a, m, n)) == NULL)
+		if ((z = modulusOfExponentialBigIntegers(a, m, n)) == NULL)
 		{
 			r = -1;
 			goto final;
@@ -119,87 +103,91 @@ int8_t rabinMillerTestForBigInteger(BigInteger n)
 			Step 2.3
 			If z != 1 and z != n - 1 do the following
 		*/
-		if (!((spIsOneBD(z) || spIsMinusOneBD(n, z))))
+		if (! ((isOneBigInteger(z) || isModularBigIntegerEqualToMinusOne(n,z))))
 		{
 			j = 1;
-			while ((j < b) && (!spIsMinusOneBD(n, z)))
+			while ((j < b) && (!(isModularBigIntegerEqualToMinusOne(n, z))))
 			{
-				if (bdExponentialToPowerOfTwoAndModularBD
-					  (&z, n, 1) == 0)
+				if (modulusOfExponentialOfBigIntegerToAPowerOfTwo(&z, n, 1) == 0)
 				{
 					r = -1;
 					goto final;
 				}
-				if (spIsOneBD(z))
+				if (isOneBigInteger(z))
 				{
 					r = 0;
 					goto final;
 				}
 				j += 1;
 			}
-			if (!spIsMinusOneBD(n, z))
+			if (! isModularBigIntegerEqualToMinusOne(n, z))
 			{
 				r = 0;
 				goto final;
 			}
 		}
-		freeBD(a);
-		freeBD(z);
+		freeBigInteger(z);
 	}
 	r = 1;
 
 final:
-	freeBD(a);
-	freeBD(z);
-	freeBD(m);
+	freeBigInteger(a);
+	freeBigInteger(z);
+	freeBigInteger(m);
 	return r;
 }
 
-uint8_t spIsProbablePrime(BD n, size_t iterations)
+uint8_t isPrimeRabinMillerBigInteger(BigInteger n, size_t iterations)
 {
-	if (spDivisibleSmallPrime(n))
+	if (isBigIntegerDivisibleBySmallPrime(n) != 0)
 		return 0;
-	if (spRabinMillerTestBD(n, iterations) == 1)
+	if (rabinMillerTestForBigInteger(n, iterations) == 1)
 		return 1;
 	return 0;
 }
 
-BD bdRandomPrime(size_t bits)
+BigInteger randomBigIntegerPrime(size_t bits)
 {
-	BD n;
-	size_t ndigits;
-	ndigits = (bits + BITS_PER_DIGIT - 1) / BITS_PER_DIGIT;
-	if ((n = spRandomBD(BYTES_PER_DIGIT * ndigits)) == NULL)
+	BigInteger n;
+
+	if ((n = randomPositiveBigIntegerWithBits(bits)) == NULL)
 		return NULL;
-	n->digits[0] |= (digit) 1;
-	n->digits[n->used - 1] |= HIBITMASK;
-	while (!spIsProbablePrime(n, 20))
-		if (! spAddDigitToBD(n, (digit) 2, 0))
+	n->digits[0] |= (DIGIT) 1;
+	while (! isPrimeRabinMillerBigInteger(n,RABINMILLERITERATIONS))
+	{
+		if (! addDigitToBigInteger(n, (DIGIT)2, 0))
 		{
-			freeBD(n);
+			freeBigInteger(n);
 			return NULL;
 		}
+	}
 	return n;
 }
 
-BD bdStrongRandomPrime(size_t bits)
+BigInteger randomBigIntegerStrongPrime(size_t bits)
 /*
-  See A Handbook Of Applied Cryptography 
-  Alfred J. Menezes, Paul C. van Oorschot and Scott A. Vanstone
-  CRC Press
-  Pag 149-150
+	See A Handbook Of Applied Cryptography 
+	Alfred J. Menezes, Paul C. van Oorschot and Scott A. Vanstone
+	CRC Press
+	Pag 149-150
+
+	A prime number p is said to be a strong prime if there exist integers r, s, 
+	and t such that the following three conditions are satisfied:
+		p − 1 has a large prime factor, denoted r
+		p + 1 has a large prime factor, denoted s
+		r − 1 has a large prime factor, denoted t.
 */
 {
-	BD r, s, t, i, p, a;
+	BigInteger r, s, t, i, p, a, b;
 	r = s = t = i = p = a = NULL;
-	if (bits < 512)
-		bits = 512;
+	if (bits < 64)
+		bits = 64;
 	/*
-		Genetae two random primes s and t
+		Genetae two random prime numbers s and t
 	*/
-	if ((s = bdRandomPrime(bits / 2)) == NULL)
+	if ((s = randomBigIntegerPrime(bits / 2)) == NULL)
 		goto final;
-	if ((t = bdRandomPrime(bits / 2)) == NULL)
+	if ((t = randomBigIntegerPrime(bits / 2)) == NULL)
 		goto final;
 	/*
 		Step 2
@@ -207,73 +195,77 @@ BD bdStrongRandomPrime(size_t bits)
 		If r is prime, continue with step 3
 		If not, set r = r + 2 * t and test again
 	*/
-	if ((i = spInitWithIntegerBD(0x8000)) == NULL)
+	if ((i = randomPositiveBigInteger((DIGIT)1)) == NULL)
 		goto final;
-	if (! spMultiplyByPowerOfTwo(t, 1))	// t = 2 * t
+	if (! multiplyBigIntegerByPowerOfTwo(t, 1))	// t = 2 * t
 		goto final;
-	if ((r = bdMultiplyBD(i, t)) == NULL)	// r = i * t
+	if ((r = multiplyTwoBigIntegers(i, t)) == NULL)	// r = i * t
 		goto final;
-	if (! spAddDigitToBD(r, (digit) 1, 0))	// r = r + 1
+	if (! addDigitToBigInteger(r, (DIGIT)1, 0))	// r = r + 1
 		goto final;
 	for (;;)
 	{
-		if (spIsProbablePrime(r, 20))
+		if (isPrimeRabinMillerBigInteger(r, 20))
 			break;
-		if (! bdAddAbsoluteValueTo(r, t))
+		if (! addAtPositionToBigInteger(r, (DIGIT)1, t, 0))
 			goto final;
 	}
 	/*
+		Now, we have r0
+
 		Step 3
 		Compute p = 2 * (s^(r-2) mod(r)) * s - 1
 	*/
-	if ((p = spCopyBD(r)) == NULL)	// p = r
+	if ((p = cloneBigInteger(r)) == NULL)	// p = r
 		goto final;
-	spSubtractDigitToBD(p, (digit) 2);	// p = p - 2
-	if ((a = bdModExponentialBD(s, p, r)) == NULL)	// a = s^p mod (r)
+	if (! subtrackDigitToBigInteger(p, (DIGIT)2, 0)) // p = p - 2
 		goto final;
-	freeBD(p);
-	p = a;			// p = a
-	if (!bdMultiplyBDBy(&p, s))	// p = p * s
+	if ((a = modulusOfExponentialBigIntegers(s, p, r)) == NULL)	// a = s^p mod (r)
 		goto final;
-	if (! spMultiplyByPowerOfTwo(p, 1))	// p = 2 * p
-		goto final;	
-	spSubtractDigitToBD(p, (digit) 1);	// p = p -1
+	freeBigInteger(p);
+	if ((p = multiplyTwoBigIntegers(a, s)) == NULL)   // p = a * s
+		goto final;
+	if (! multiplyBigIntegerByPowerOfTwo(p, (DIGIT)1))   // p = 2 * p
+		goto final;
+	if (! subtrackDigitToBigInteger(p, (DIGIT)1, 0))	// p = p - 1
+		goto final;
+	freeBigInteger(a);
 	/*
+		Now we have p0
+
 		Step 4
 		Select an integer i and set p = p + 2 * i * r * s 
 		If p is prime, return p
 		If not, set p = p + 2 * r * s and test again
 	*/
-	freeBD(i);
-	if ((i = spInitWithIntegerBD(0x8000)) == NULL)
+	if (! randomizeBigInteger(i))
 		goto final;
-	if (! spMultiplyByPowerOfTwo(r, 1))	// r = 2 * r
+	if (! multiplyBigIntegerByPowerOfTwo(r, 1))	// r = 2 * r0
 		goto final;
-	if (!bdMultiplyBDBy(&r, s))	// r = r * s
+	if ((a = multiplyTwoBigIntegers(r, s)) == NULL)   // a = 2 * r0 * s
 		goto final;
-	if (!bdMultiplyBDBy(&i, r))	// i = r * i 
+	if ((b = multiplyTwoBigIntegers(a, i)) == NULL)   // b = 2 * r0 * s * i 
 		goto final;
-	if (! bdAddAbsoluteValueTo(p, i))	// p = p + i
+	if (! addAtPositionToBigInteger(b, (DIGIT)1, p,(DIGIT)1)) // b = 2 * r0 * s * i + p0
 		goto final;
 	for (;;)
 	{
-		if (spIsProbablePrime(p, 20))
-		{
-			freeBD(r);
-			freeBD(s);
-			freeBD(t);
-			freeBD(i);
-			return p;
-		}
-		if (! bdAddAbsoluteValueTo(p, r))
+		if (isPrimeRabinMillerBigInteger(b, RABINMILLERITERATIONS))
 			goto final;
+
+		if (! addAtPositionToBigInteger(b, (DIGIT)1, a, 0))
+		{
+			freeBigInteger(b);
+			goto final;
+		}
 	}
 
 final:
-	freeBD(r);
-	freeBD(s);
-	freeBD(t);
-	freeBD(i);
-	freeBD(p);
-	return NULL;
+	freeBigInteger(r);
+	freeBigInteger(s);
+	freeBigInteger(t);
+	freeBigInteger(i);
+	freeBigInteger(p);
+	freeBigInteger(a);
+	return b;
 }

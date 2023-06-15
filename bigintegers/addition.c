@@ -41,7 +41,7 @@ int addDigitToBigInteger(BigInteger n, DIGIT m, size_t pos)
 	if (n->used < pos + 1)
 		n->used = pos + 1;
 
-	add_two_integers_and_carry(n,i, m, t);
+	add_two_integers_and_carry(n, i, m, t);
 	while (t > 0)
 	{
 		i++;
@@ -51,6 +51,39 @@ int addDigitToBigInteger(BigInteger n, DIGIT m, size_t pos)
 		if (i > n->used)
 			n->used++;
 		add_two_integers_and_carry(n,i, 0, t);
+	}
+	return 1;
+}
+
+int subtrackDigitToBigInteger(BigInteger n, DIGIT m, size_t pos)
+/*
+	Computes n = n - m*B^pos
+*/
+{
+	DIGIT t = 0;
+	size_t i = pos;
+	if (n->alloc < pos + 1)
+		if (! increaseSizeOfBigInteger(n,ALLOCSIZE))
+			return 0;
+	if (n->sign > 0)
+	{
+		if (compareBigIntegerAbsoluteValueWithDigitAtPos(n, m, pos) == -1)
+			n->sign = -1;
+		subtrack_two_integers_and_carry(n, pos, m, t);
+		i = pos + 1;
+		while (t > 0)
+		{
+			subtrack_two_integers_and_carry(n,i,0,t);
+			i++;
+		}
+		return 1;
+	}
+	add_two_integers_and_carry(n, pos, m, t);
+	i = pos + 1;
+	while (t > 0)
+	{
+		add_two_integers_and_carry(n,i,0,t);
+		i++;
 	}
 	return 1;
 }

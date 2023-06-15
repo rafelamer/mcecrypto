@@ -255,8 +255,35 @@ int compareBigIntegerAbsoluteValuesAtPosition(BigInteger n1,BigInteger n2,DIGIT 
 	return 0;
 }
 
-
-
+int compareBigIntegerAbsoluteValueWithDigitAtPos(BigInteger n, DIGIT m, DIGIT pos)
+/*
+Compares the absolute values of n and m * B^pos
+*/
+{
+	size_t m1, i;
+	m1 = sizeOfBigInteger(n);
+	if (m == 0)
+	{
+		if (m1 > 0)
+			return 1;
+		return 0;
+	}
+	if (m1 > pos)
+		return 1;
+	if (pos < m1)
+		return -1;
+	if(m > n->digits[pos])
+		return -1;
+	if(m < n->digits[pos])
+		return 1;
+	for(i = pos;i > 0;i--)
+	{
+		if (n->digits[i - 1] > 0)
+			return 1;
+	}
+	return 0;
+}
+			
 void setZeroBigInteger(BigInteger n)
 {
 	memset(n->digits, 0, n->alloc * sizeof(DIGIT));
@@ -267,6 +294,17 @@ void setZeroBigInteger(BigInteger n)
 int isOneBigInteger(BigInteger n)
 {
 	if (n->sign != 1)
+		return 0;
+	if (sizeOfBigInteger(n) > 1)
+		return 0;
+	if (n->digits[0] != (DIGIT) 1)
+		return 0;
+	return 1;
+}
+
+int isMinusOneBigInteger(BigInteger n)
+{
+	if (n->sign != -1)
 		return 0;
 	if (sizeOfBigInteger(n) > 1)
 		return 0;

@@ -27,6 +27,16 @@
 #define NEGATIVE(x) if(x > 0) {x = -x;}
 #define ASSIGNTO(x,y) if (! copyBigIntegerTo(x,y)) goto final
 
+int isBigIntegerDivisibleByDigit(BigInteger n, DIGIT m)
+{
+	DIGIT r;
+	if (! divideBigIntegerByDigit(n, m, &r))
+		return -1;
+	if (r == 0)
+		return 1;
+	return 0;
+}
+
 void shiftBigIntegerToRightNumberOfDigits(BigInteger n, DIGIT ndigits)
 {
 	if (ndigits == 0)
@@ -443,7 +453,7 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 				goto final;
 			if ((t2 = clonePartOfBigInteger(n2,t,2)) == NULL)
 				goto final;	
-			if (! findFirstDigitForDivisionAlgorithm(t1,t2, &((*q)->digits[i-t-1])))
+			if (! findFirstDigitByBisection(t1,t2, &((*q)->digits[i-t-1])))
 				goto final;
 			freeBigInteger(t2);
 			freeBigInteger(t1);

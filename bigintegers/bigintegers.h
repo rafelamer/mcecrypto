@@ -90,6 +90,8 @@ typedef __uint128_t DOUBLEDIGIT;
 #define SECP521R1 7
 #define TESTEC000 8
 
+#define RABINMILLERITERATIONS 25
+
 typedef struct {
 	size_t used;
 	size_t alloc;
@@ -115,8 +117,10 @@ size_t numberOfLowerBitsZeroBigInteger(BigInteger n);
 int8_t bitOfBigIntegerAtPosition(BigInteger n,DIGIT pos);
 int compareBigIntegerAbsoluteValues(BigInteger n1,BigInteger n2);
 int compareBigIntegerAbsoluteValuesAtPosition(BigInteger n1,BigInteger n2,DIGIT pos);
+int compareBigIntegerAbsoluteValueWithDigitAtPos(BigInteger n, DIGIT m, DIGIT pos);
 void setZeroBigInteger(BigInteger n);
 int isOneBigInteger(BigInteger n);
+int isMinusOneBigInteger(BigInteger n);
 void testSignAndZero(BigInteger n);
 int increaseSizeOfBigInteger(BigInteger n,size_t s);
 void free_big_integer(BigInteger *n);
@@ -140,6 +144,7 @@ void printDigitsOfBigInteger(BigInteger n);
 	Addition and subtraction
 */
 int addDigitToBigInteger(BigInteger n, DIGIT m, size_t pos);
+int subtrackDigitToBigInteger(BigInteger n, DIGIT m, size_t pos);
 BigInteger addBigIntegerAbsoluteValues(BigInteger n1,BigInteger n2);
 void subtrackBigIntegerAbsoluteValueTo(BigInteger n1,BigInteger n2);
 BigInteger subtrackBigIntegerAbsoluteValues(BigInteger n1,BigInteger n2,int8_t *cmp);
@@ -176,6 +181,7 @@ BigInteger powerOfBigIntegers(BigInteger n1, BigInteger n2);
 /*
 	Division
 */
+int isBigIntegerDivisibleByDigit(BigInteger n, DIGIT m);
 void shiftBigIntegerToRightNumberOfDigits(BigInteger n, DIGIT ndigits);
 void shiftBigIntegerToRightNumberOfBits(BigInteger n, DIGIT nbits);
 uint8_t findFirstDigitByBisection(BigInteger t1, BigInteger t2,DIGIT *m);
@@ -205,9 +211,9 @@ BigInteger extendedEuclidAlgorithmBigIntegers(BigInteger n1, BigInteger n2, BigI
 /*
 	Prime numbers
 */
-int8_t isBigIntegerDivisibleBySmallPrime(BigInteger n);
-int8_t rabinMillerTestForBigInteger(BigInteger n, size_t iterations);
-uint8_t isBigIntegerProbablePrime(BigInteger n, size_t iterations);
+int isBigIntegerDivisibleBySmallPrime(BigInteger n);
+int rabinMillerTestForBigInteger(BigInteger n, size_t iterations);
+uint8_t isPrimeRabinMillerBigInteger(BigInteger n, size_t iterations);
 BigInteger randomBigIntegerPrime(size_t bits);
 BigInteger randomBigIntegerStrongPrime(size_t bits);
 
