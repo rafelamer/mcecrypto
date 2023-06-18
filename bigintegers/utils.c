@@ -96,15 +96,21 @@ BigInteger cloneBigInteger(BigInteger n)
 }
 
 BigInteger clonePartOfBigInteger(BigInteger n,size_t pos,size_t len)
+/*
+	If len > pos + 1
+*/
 {
 	BigInteger m;
 	if (pos > n->used)
 		return NULL;
-	if (len > pos + 1)
-		len = pos + 1;		
-	if ((m = initBigInteger(len + 8)) == NULL)
+	if (len == 0)
 		return NULL;
-	memcpy(m->digits,n->digits + pos + 1 - len,len * sizeof(DIGIT));
+	if ((m = initBigInteger(len + 12)) == NULL)
+		return NULL;
+	if ( len <= pos + 1)
+		memcpy(m->digits, n->digits + pos + 1 - len, len * sizeof(DIGIT));
+	else
+		memcpy(m->digits + len - pos, n->digits, len * sizeof(DIGIT));
 	m->used = len;
 	return m;
 }

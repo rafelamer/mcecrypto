@@ -254,7 +254,6 @@ EllipticCurvePoint multiplyEllipticCurvePointByPowerOfTwo(EllipticCurvePoint P,D
 EllipticCurvePoint multiplyEllipticCurvePointByBigInteger(EllipticCurvePoint P,BigInteger n,EllipticCurve ec);
 BigInteger rightHandWeierstrassEquation(BigInteger x,EllipticCurve ec);
 EllipticCurvePoint randomEllipticCurvePoint(EllipticCurve ec);
-BigInteger orderOfEllipticCurvePoint(EllipticCurvePoint P,EllipticCurve ec);
 void printEllipticCurvePointInBase(EllipticCurvePoint P,DIGIT b);
 void printEllipticCurvePoint(EllipticCurvePoint P);
 

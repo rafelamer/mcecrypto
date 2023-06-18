@@ -137,17 +137,23 @@ uint8_t findFirstDigitByBisection(BigInteger t1, BigInteger t2,DIGIT *m)
 			goto final;
 		shiftBigIntegerToRightNumberOfBits(y, (DIGIT)1);
 		dm /= 2;
-		(*m) += sign * dm; 
+		// printf("%lu %d\n",*m,sign);
+		if (sign == 1)
+			(*m) += dm;
+		else
+			(*m) -= dm; 
+		// printf("%lu\n",*m);
+
 		if (compareBigIntegerAbsoluteValues(y,t1) > 0)
 		{
 			ASSIGNTO(y,z);
 			ASSIGNTO(x,y);
-			POSITIVE(sign);
+			NEGATIVE(sign);
 		}
 		else
 		{
 			ASSIGNTO(y,x);
-			NEGATIVE(sign);
+			POSITIVE(sign);
 		}
 	}
 	/*
@@ -452,7 +458,6 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 			goto final;
 		freeBigInteger(t2);
 		freeBigInteger(t1);
-		}	
 		/*
 			Step 3.3
 		*/
