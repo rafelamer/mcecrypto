@@ -157,6 +157,13 @@ size_t bitsInBigInteger(BigInteger n)
 	return ndigits * BITS_PER_DIGIT - i;
 }
 
+size_t bytesInBigInteger(BigInteger n)
+{
+	size_t t;
+    t = bitsInBigInteger(n);
+    return (t + 7) / 8;
+}
+
 size_t numberOfLowerBitsZeroBigInteger(BigInteger n)
 /*
   Return the initial bits equals to zero in n, i.e.,
@@ -199,6 +206,14 @@ int8_t bitOfBigIntegerAtPosition(BigInteger n,DIGIT bit)
 	mask = (DIGIT) 1 << to_get;
 	return ((n->digits[idigit] & mask) ? 1 : 0);
 }
+
+unsigned char byteOfBigIntegerAtPosition(BigInteger n, size_t byte)
+{
+	unsigned char *t;
+    t = (unsigned char *)(n->digits);
+    return *(t + byte);
+}
+
 void cleanUpBigInteger(BigInteger n)
 {
 	n->used = sizeOfBigInteger(n);
