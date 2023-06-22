@@ -22,8 +22,8 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
-#ifndef H_DER_H_
-#define H_DER_H_ 1
+#ifndef H_MCEUTILS_H_
+#define H_MCEUTILS_H_ 1
 
 #include <sys/types.h>
 #include <inttypes.h>
@@ -32,8 +32,10 @@
 #include <sys/stat.h>
 #include <limits.h>
 #include <bigintegers.h>
+#include <argon2.h>
 
 #define freeStack(s)   stFreeStack(&(s))
+#define freeString(s)  free_string((char **)(&(s)))
 
 typedef struct {
 	size_t used;
@@ -42,12 +44,6 @@ typedef struct {
 	unsigned char *read;
 } data_stack;
 typedef data_stack *Stack;
-
-/*
-  Operations with strings and files
- */
-unsigned char *readFileBinaryMode(const char *filename, size_t * len,size_t * alloc);
-int writeFileBinaryMode(const char *filename, unsigned char *data,size_t length);
 
 /*
   Stack for DER
@@ -98,6 +94,55 @@ int writeFileBinaryMode(const char *filename, unsigned char *data,size_t length)
 unsigned char *zlib_compress_data(unsigned char *data, size_t insize, size_t * outsize, size_t * alloc);
 unsigned char *zlib_uncompress_data(unsigned char *data, size_t insize, size_t * outsize, size_t * alloc);
 
+/*
+  Text to SHA256 or SHA512
+ */
+void textToSHA256(unsigned char *text, size_t len, unsigned char *sha);
+void textToSHA512(unsigned char *text, size_t len, unsigned char *sha);
+void printBytesInHexadecimal(unsigned char *text, size_t len);
 
+/*
+  Text to HMAC256 or HMAC512
+*/
+int textToHMAC256(unsigned char *text, size_t tlen, unsigned char *key, size_t klen, unsigned char *hmac);
+int textToHMAC512(unsigned char *text, size_t tlen, unsigned char *key, size_t klen, unsigned char *hmac);
 
-#endif				/* H_DER_H_ */
+/*
+  Password-Based Key Derivation Function
+ */
+int pbkdf2_hmac_sha256(const uint8_t *password, size_t password_len, const uint8_t *salt, size_t salt_len,
+                        uint32_t iterations, uint8_t *derived_key, size_t key_len);
+int pbkdf2_hmac_sha512(const uint8_t *password, size_t password_len, const uint8_t *salt, size_t salt_len,
+                        uint32_t iterations, uint8_t *derived_key, size_t key_len);
+
+/*
+  Encryption and decryption of Stack with AES
+*/
+#define PASSALLOCSIZE 128
+#define STACKCOMPRESS 1
+#define STACKENCODE   2
+#define ENCRYPTION_AES_OK 0
+#define ENCRYPTION_AES_FILE_NOT_FOUND -1
+#define ENCRYPTION_AES_WRONG_PASSWORD -2
+#define ENCRYPTION_AES_ERROR -3
+#define ENCRYPTION_FILE_NOT_FOUND -4
+#define ENCRYPTION_WRITE_FILE_ERROR -5
+
+char *getPassword(const char *text);
+char *getAndVerifyPassphrase(unsigned int msize);
+uint8_t getRandomSalt(unsigned char *salt);
+int encryptStackAES(Stack st, uint8_t mode);
+int decryptStackAES(Stack st, uint8_t mode);
+
+/*
+  Encrypt and decrypt with AES
+*/
+int encryptFileWithAES(char *infile, char **outfile, int ascii);
+int decryptFileWithAES(char *infile, char *outfile);
+
+/*
+	Clear comments
+*/
+unsigned char *clearCcommentsInText(unsigned char *string,const unsigned char *begin,const unsigned char *end);
+
+#endif				/* H_MCEUTILS_H_ */
