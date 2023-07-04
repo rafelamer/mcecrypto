@@ -209,6 +209,7 @@ int LegendreSymbol(BigInteger n,BigInteger p,uint8_t *error);
 	Extended EuclidAlgorithm
 */
 BigInteger extendedEuclidAlgorithmBigIntegers(BigInteger n1, BigInteger n2, BigInteger * x, BigInteger * y);
+BigInteger leastCommonMultipleOfBigIntegers(BigInteger n1, BigInteger n2);
 
 /*
 	Prime numbers

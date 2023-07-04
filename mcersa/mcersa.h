@@ -22,14 +22,17 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
+#include <bigintegers.h>
+#include <mceutils.h>
+
 #ifndef H_MCERSA_H_
 #define H_MCERSA_H_ 1
 
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #define freeZeroData(s,n) spFreeZeroData((char **)(&(s)),(n));
-#define freePrivateRSAKey(r) spFreeRSAPrivateKey(&(r))
-#define freePublicRSAKey(r) spFreeRSAPublicKey(&(r))
+#define freePrivateRSAKey(r) free_RSA_PrivateKey(&(r))
+#define freePublicRSAKey(r) free_RSA_PublicKey(&(r))
 
 typedef struct {
 	BigInteger n;			// Modulo
@@ -39,8 +42,8 @@ typedef public_rsa_key *PublicRSAKey;
 
 typedef struct {
 	PublicRSAKey pub;
-	BigInteger p;			// Prime p
-	BigInteger q;			// Prime q
+	BigInteger p;			  // Prime p
+	BigInteger q;			  // Prime q
 	BigInteger dk;			// Decryption key
 	BigInteger kp;			// dk mod (p - 1)
 	BigInteger kq;			// dk mod (q - 1)
@@ -49,58 +52,38 @@ typedef struct {
 typedef private_rsa_key *PrivateRSAKey;
 
 /*
-  RSA
+  RSA keys
  */
-PrivateRSAKey bdInitRSAPrivateKey();
-PublicRSAKey bdInitRSAPublicKey();
-PrivateRSAKey genRSAPrivateKey(size_t bits);
-void spFreeRSAPrivateKey(PrivateRSAKey * r);
-void spFreeRSAPublicKey(PublicRSAKey * r);
-void spPrintRSAPrivateKey(PrivateRSAKey r);
-void spPrintRSAPublicKey(PublicRSAKey r);
+PrivateRSAKey initRSAPrivateKey();
+PublicRSAKey initRSAPublicKey();
+PrivateRSAKey generateRSAPrivateKey(size_t bits);
+void free_RSA_PrivateKey(PrivateRSAKey * r);
+void free_RSA_PublicKey(PublicRSAKey * r);
+void printRSAPrivateKey(PrivateRSAKey r);
+void printRSAPublicKey(PublicRSAKey r);
+
+/*
+  Encrypt and decrypt BigIntegers
+*/
+BigInteger publicEncryptRSA(PublicRSAKey rsa, BigInteger m);
+BigInteger privateDecryptRSA(PrivateRSAKey rsa, BigInteger c);
+BigInteger publicEncryptOAEPRSA(PublicRSAKey rsa, BigInteger m);
+BigInteger privateDecryptOAEPRSA(PrivateRSAKey rsa, BigInteger c);
+BigInteger privateEncryptOAEPRSA(PrivateRSAKey rsa, BigInteger m);
+BigInteger publicDecryptOAEPRSA(PublicRSAKey rsa, BigInteger c);
 
 /*
   RSA files
  */
-unsigned char *readFile(const char *filename, size_t * len);
-PrivateRSAKey bdReadPrivateRSAKeyFromFile(const char *filename);
-uint8_t bdWritePrivateRSAKeyToFile(const char *filename, PrivateRSAKey rsa);
-PrivateRSAKey bdReadEncryptedPrivateRSAKeyFromFile(const char *filename);
-uint8_t bdWriteEncryptedPrivateRSAKeyToFile(const char *filename, PrivateRSAKey rsa);
-PublicRSAKey bdReadPublicRSAKeyFromFile(const char *filename);
-uint8_t bdWritePublicRSAKeyToFile(const char *filename, PublicRSAKey rsa);
-int generatePairRSAKeys(int bits, char *filename, int aes);
-
-/*
-  Encrypt and decrypt Big Digits
-*/
-BD publicEncryptRSA(PublicRSAKey rsa, BD m);
-BD privateDecryptRSA(PrivateRSAKey rsa, BD c);
-BD publicEncryptOAEPRSA(PublicRSAKey rsa, BD m);
-BD privateDecryptOAEPRSA(PrivateRSAKey rsa, BD c);
-BD privateEncryptOAEPRSA(PrivateRSAKey rsa, BD m);
-BD publicDecryptOAEPRSA(PublicRSAKey rsa, BD c);
-
-/*
-  Encrypt and decrypt Stack with AES
- */
-#define STACKCOMPRESS 1
-#define STACKENCODE   2
-#define STACKSALT     4
-#define ENCRYPTION_OK 0
-#define ENCRYPTION_FILE_NOT_FOUND -1
-#define ENCRYPTION_WRONG_PASSWORD -2
-#define ENCRYPTION_ERROR -3
-#define ENCRYPTION_OPEN_FILE_ERROR -4
-#define ENCRYPTION_PASSWORD_SHORT -5
-#define ENCRYPTION_PUBLIC_KEY_ERROR -6
-#define ENCRYPTION_PRIVATE_KEY_ERROR -7
-#define ENCRYPTION_WRITE_FILE_ERROR -8
-#define SIGNATURE_OK 0
-#define SIGNATURE_ERROR -1
-#define SIGNATURE_BAD -2
-#define SIGNATURE_OPEN_FILE_ERROR -3
-#define SIGNATURE_FILE_NOT_FOUND -4
+int stWriteRSAEncryptionOI(Stack st);
+int stReadOptionalRSAEncryptionOI(Stack st);
+PrivateRSAKey readPrivateRSAKeyFromFile(const char *filename);
+uint8_t writePrivateRSAKeyToFile(const char *filename, PrivateRSAKey rsa);
+PrivateRSAKey readEncryptedPrivateRSAKeyFromFile(const char *filename);
+uint8_t writeEncryptedPrivateRSAKeyToFile(const char *filename, PrivateRSAKey rsa);
+PublicRSAKey readPublicRSAKeyFromFile(const char *filename);
+uint8_t writePublicRSAKeyToFile(const char *filename, PublicRSAKey rsa);
+int generateAndSavePairRSAKeys(int bits, char *filename, int aes);
 
 /*
 	Encrypt and decrypt files
@@ -115,23 +98,5 @@ int signStackRSA(Stack st,PrivateRSAKey rsa,char *filename,uint8_t mode);
 int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode);
 int signFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii);
 int verifyAndExtractSignedFileWithRSA(char *infile,char *keyfile);
-
-/*
-  Usefull for debugging
- */
-#define SAVEDEBUG(file,data,length) do {                                \
-  int _fd_;                                                             \
-  if ((_fd_ = open(file,O_WRONLY|O_CREAT|O_TRUNC,S_IRUSR|S_IWUSR)) < 0) \
-  {                                                                     \
-    printf("Error opening the file %s\n",file);                         \
-    goto final;                                                         \
-  }                                                                     \
-  if ((write(_fd_,data,length) != length))                              \
-  {                                                                     \
-    printf("Error writing the file %s\n",file);			                    \
-    goto final;                                                         \
-  }                                                                     \
-  close(_fd_);                                                          \
-  } while (0);
 
 #endif				/* H_MCERSA_H_ */

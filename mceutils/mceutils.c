@@ -220,11 +220,11 @@ size_t stReadLength(Stack st, int *error)
 	return (size_t) (b & 0x7F);
 }
 
-unsigned long long stReadInteger(Stack st, int *error)
+DIGIT stReadDigit(Stack st, int *error)
 {
 	unsigned char b;
 	size_t length, i;
-	unsigned long long int value;
+	DIGIT value;
 
 	*error = 1;
 	b = *(st->read);
@@ -1028,7 +1028,7 @@ final:
 /*
   Encryption and decryption of Stack with AES
 */
-char *getPassword(const char *text)
+char *getPassphrase(const char *text)
 {
 	char *password;
 	char c;
@@ -1072,8 +1072,8 @@ char *getAndVerifyPassphrase(unsigned int msize)
 	char *p1, *p2;
 	p1 = p2 = NULL;
 
-	p1 = getPassword("Enter the encryption passphrase: ");
-	p2 = getPassword("Verifying. Enter the encryption passphrase again: ");
+	p1 = getPassphrase("Enter the encryption passphrase: ");
+	p2 = getPassphrase("Verifying. Enter the encryption passphrase again: ");
 
 	if ((strlen(p1) != strlen(p2)) || (memcmp(p1, p2, strlen(p1)) != 0))
 		goto errorVerify;
@@ -1099,36 +1099,34 @@ errorTooShort:
 uint8_t getRandomSalt(unsigned char *salt)
 {
 	FILE *fp;
-	unsigned char bs[16];
+	unsigned char bs[24];
 	size_t i;
 	static const unsigned char map[17] = "0123456789ABCDEF";
 
 	if ((fp = fopen("/dev/urandom", "r")) == NULL)
 		return 0;
-	if (fread(bs, sizeof(unsigned char), 16, fp) != 16)
+	if (fread(bs, sizeof(unsigned char), 24, fp) != 24)
 	{
 		fclose(fp);
 		return 0;
 	}
 	fclose(fp);
-	for (i = 0; i < 16; i++)
+	for (i = 0; i < 24; i++)
 	{
 		salt[2 * i] = map[(bs[i] >> 4) & 0x0f];
 		salt[2 * i + 1] = map[(bs[i]) & 0x0f];
 	}
-	salt[32] = '\0';
 	return 1;
 }
 
-int encryptStackAES(Stack st, uint8_t mode)
+int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type)
 {
 	char *passphrase;
-	size_t nblocks, nbytes, alloc;
+	size_t passlen, nbytes, alloc;
 	unsigned char *text;
-	size_t lbc;
-	uint8_t keys[64];
+	uint8_t keys[KDFLENKEYS];
 	unsigned int key_schedule[60];
-	unsigned char salt[48];
+	unsigned char salt[SALTLEN];
 	int ret;
 
 	passphrase = NULL;
@@ -1138,24 +1136,44 @@ int encryptStackAES(Stack st, uint8_t mode)
 		goto final;
 
 	/*
-		Get the passphrase and random salt
+		Get the random salt
 	*/
-	if ((passphrase = getAndVerifyPassphrase(10)) == NULL)
-	{
-		ret = ENCRYPTION_AES_WRONG_PASSWORD;
-		goto final;
-	}
 	if (! getRandomSalt(salt))
 		goto final;
 
 	/*
-		Derive the key and the iv from the password
+		Get the passphrase and random salt
 	*/
-	if (! pbkdf2_hmac_sha512(passphrase, strlen(passphrase), salt, strlen((char *)salt), 128000, keys, 64))
-		goto final;
-
+	if ((secret == NULL) || (secretlen == 0))
+	{
+		if ((passphrase = getAndVerifyPassphrase(10)) == NULL)
+		{
+			ret = ENCRYPTION_AES_WRONG_PASSWORD;
+			goto final;
+		}
+		passlen = strlen(passphrase);
+	} 
+	else
+	{
+		passphrase = secret;
+		passlen = secretlen;
+	}
+	
 	/*
-		Compress
+		Derive the key and the iv from the password and salt
+	*/
+	if (type == KDFHMACSHA512)
+		if (! pbkdf2_hmac_sha512(passphrase, passlen, salt, strlen((char *)salt), 128000, keys, KDFLENKEYS))
+			goto final;
+	if (type == KDFHMACSHA256)
+		if (! pbkdf2_hmac_sha256(passphrase, passlen, salt, strlen((char *)salt), 128000, keys, KDFLENKEYS))
+			goto final;
+	if (type == KDFARGON2)
+		if (argon2id_hash_raw(4, 16, 2, passphrase, passlen, salt, strlen((char *)salt), keys, KDFLENKEYS) != 0 )
+			goto final;
+	
+	/*
+		Compress with zlib
 	*/
 	if (mode & STACKCOMPRESS)
 	{
@@ -1166,27 +1184,27 @@ int encryptStackAES(Stack st, uint8_t mode)
 
 	/*
 		Encryption process
-		lbc is the length of the data before encrypt
+		We start padding st->data so that st->used is a multiple of AES_BLOCK_SIZE
 	*/
-	lbc = st->used;
 	memset(st->data + st->used, 0, st->alloc - st->used);
-	nblocks = (st->used + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
-	if (st->alloc < nblocks * AES_BLOCK_SIZE)
-	{
-		size_t add = nblocks * AES_BLOCK_SIZE - st->alloc + 128;
-		if (!stExpandStackInSize(st, add))
+	uint8_t padding = AES_BLOCK_SIZE - (st->used % AES_BLOCK_SIZE);
+	if (st->alloc < st->used + padding)
+		if (!stExpandStackInSize(st, padding + 128))
 			goto final;
-	}
+	memset(st->data + st->used, padding, padding);
+	st->used += padding;
+	size_t nblocks = st->used / AES_BLOCK_SIZE;
 
-	/*
-		Encrypt
-	*/
 	aes_key_setup(keys, key_schedule, 256);
-	if ((text = (unsigned char *)malloc(nblocks * AES_BLOCK_SIZE * sizeof(unsigned char))) == NULL)
+	if ((text = (unsigned char *)malloc(st->used * sizeof(unsigned char))) == NULL)
 		goto final;
 	if (!aes_encrypt_cbc(st->data, nblocks * AES_BLOCK_SIZE, text, key_schedule, 256, keys + 32))
 		goto final;
-	memset(keys, 0, 64);
+	memset(keys, 0, KDFLENKEYS);
+
+	/*
+		Set the stack with encrypted content
+	*/
 
 	if (! stReInitStackWithSize(st, nblocks * AES_BLOCK_SIZE + 1024))
 		goto final;
@@ -1211,34 +1229,42 @@ int encryptStackAES(Stack st, uint8_t mode)
 	ret = ENCRYPTION_AES_OK;
 
 final:
-	freeString(passphrase);
+	if ((unsigned char *)passphrase != secret)
+		freeString(passphrase);
 	return ret;
 }
 
-int decryptStackAES(Stack st, uint8_t mode)
+int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type)
 {
 	char *passphrase;
-	size_t nbytes, nblocks, length;
-	unsigned char *text, *s;
+	size_t passlen, nbytes;
 	unsigned int key_schedule[60];
 	int ret, error;
-	uint8_t keys[64];
-	size_t lbc;
-	unsigned char salt[48];
+	uint8_t keys[KDFLENKEYS];
+	unsigned char salt[SALTLEN];
+	unsigned char *text, *s;
 	passphrase = NULL;
-	text = s = NULL;
 	ret = ENCRYPTION_AES_ERROR;
 	
-	if ((st->data == NULL) || (st->used == 0))
+	if ((st == NULL) || (st->data == NULL) || (st->used == 0))
 		goto final;
 
 	/*
-		Get the passphrase
+		Get the passphrase and random salt
 	*/
-	if ((passphrase = getAndVerifyPassphrase(10)) == NULL)
+	if ((secret == NULL) || (secretlen == 0))
 	{
-		ret = ENCRYPTION_AES_WRONG_PASSWORD;
-		goto final;
+		if ((passphrase = getPassphrase("Enter the decryption passphrase: ")) == NULL)
+		{
+			ret = ENCRYPTION_AES_WRONG_PASSWORD;
+			goto final;
+		}
+		passlen = strlen(passphrase);
+	} 
+	else
+	{
+		passphrase = secret;
+		passlen = secretlen;
 	}
 
 	/*
@@ -1255,7 +1281,7 @@ int decryptStackAES(Stack st, uint8_t mode)
 	/*
 		Start reading the Stack
 	*/
-	length = stReadStartSequenceAndLength(st, &error);
+	size_t length = stReadStartSequenceAndLength(st, &error);
 	if ((length == 0) || (error != 0))
 		goto final;
 	if (length != stBytesRemaining(st))
@@ -1263,35 +1289,47 @@ int decryptStackAES(Stack st, uint8_t mode)
 
 	if ((s = stReadOctetString(st, &length, &error)) == NULL)
 		goto final;	
-	if ((length != 32) || (error != 0))
+	if ((length != SALTLEN) || (error != 0))
 		goto final;
-	memcpy(salt, s, 32);
-	salt[32] = '\0';
+
+	memcpy(salt, s, SALTLEN);
 	freeString(s);
 
 	/*
-		Derive the key and the iv from the password
+		Derive the key and the iv from the passphrase and salt
 	*/
-	if (! pbkdf2_hmac_sha512(passphrase, strlen(passphrase), salt, strlen((char *)salt), 128000, keys, 64))
-		goto final;
-	
+	if (type == KDFHMACSHA512)
+		if (! pbkdf2_hmac_sha512(passphrase, passlen, salt, strlen((char *)salt), 128000, keys, KDFLENKEYS))
+			goto final;
+	if (type == KDFHMACSHA256)
+		if (! pbkdf2_hmac_sha256(passphrase, passlen, salt, strlen((char *)salt), 128000, keys, KDFLENKEYS))
+			goto final;
+	if (type == KDFARGON2)
+		if (argon2id_hash_raw(4, 16, 2, passphrase, passlen, salt, strlen((char *)salt), keys, KDFLENKEYS) != 0 )
+			goto final;
+
 	/*
 		Decrypt
 	*/
-	if (((lbc = stReadInteger(st, &error)) == 0) || (error != 0))
-		goto final;
-
 	if ((text = stReadOctetString(st, &length, &error)) == NULL)
 		goto final;
 	if ((length == 0) || (error != 0))
 		goto final;
 	stSetDataInStack(st, text, length, length);
-	nblocks = st->used / AES_BLOCK_SIZE;
+	size_t nblocks = st->used / AES_BLOCK_SIZE;
+	
 	if ((text = (unsigned char *)malloc(nblocks * AES_BLOCK_SIZE * sizeof(unsigned char))) == NULL)
 		goto final;
 	aes_key_setup(keys, key_schedule, 256);
 	aes_decrypt_cbc(st->data, nblocks * AES_BLOCK_SIZE, text, key_schedule, 256, keys + 32);
-	stSetDataInStack(st, text, lbc, nblocks * AES_BLOCK_SIZE);
+	stSetDataInStack(st, text, nblocks * AES_BLOCK_SIZE, nblocks * AES_BLOCK_SIZE);
+
+	/*
+		Unpadding
+	*/
+	uint8_t padding = (uint8_t)(st->data[st->used - 1]);
+	st->used -= padding;
+	memset(st->data + st->used, 0, padding);
 
 	/*
 		Uncompress
@@ -1306,16 +1344,15 @@ int decryptStackAES(Stack st, uint8_t mode)
 	ret = ENCRYPTION_AES_OK;
 
 final:
-	freeString(passphrase);
-	freeString(s);
+	if ((unsigned char *)passphrase != secret)
+		freeString(passphrase);
 	return ret;
 }
 
-int encryptFileWithAES(char *infile, char **outfile, int ascii)
+int encryptFileWithAES(char *infile, char **outfile, uint8_t type, int ascii)
 {
 	Stack st;
 	unsigned char *text;
-	unsigned char salt[48];
 	size_t nbytes, alloc;
 	int ret;
 	uint8_t mode;
@@ -1359,9 +1396,9 @@ int encryptFileWithAES(char *infile, char **outfile, int ascii)
 	 */
 	mode = STACKCOMPRESS;
 	if (ascii)
-		mode += STACKENCODE;
+		mode |= STACKENCODE;
 
-	ret = encryptStackAES(st, mode);
+	ret = encryptStackAES(st, NULL, 0, mode, type);
 	if (ret != ENCRYPTION_AES_OK)
 		goto final;
 
@@ -1393,9 +1430,10 @@ int encryptFileWithAES(char *infile, char **outfile, int ascii)
 		ret = ENCRYPTION_AES_OK;
 		goto final;
 	}
+
 	if (write(fd, st->data, st->used) != st->used)
 		WRITEERROR;
-
+	close(fd);
 	ret = ENCRYPTION_AES_OK;
 
 final:
@@ -1404,11 +1442,10 @@ final:
 	return ret;
 }
 
-int decryptFileWithAES(char *infile, char *outfile)
+int decryptFileWithAES(char *infile, char *outfile, uint8_t type)
 {
 	Stack st;
 	unsigned char *text, *begin;
-	unsigned char salt[48];
 	size_t nbytes, alloc, len;
 	int ret;
 	uint8_t mode;
@@ -1449,8 +1486,8 @@ int decryptFileWithAES(char *infile, char *outfile)
 	/*
 		Decrypt
 	*/
-	mode += STACKCOMPRESS;
-	if ((ret = decryptStackAES(st, mode)) != ENCRYPTION_AES_OK)
+	mode |= STACKCOMPRESS;
+	if ((ret = decryptStackAES(st, NULL, 0, mode, type)) != ENCRYPTION_AES_OK)
 		goto final;
 
 	/*

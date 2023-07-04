@@ -57,7 +57,7 @@ int stExpandStackInSize(Stack st, size_t size);
 void stSetDataInStack(Stack st, unsigned char *data, size_t nbytes, size_t alloc);
 size_t stReadLength(Stack st, int *error);
 size_t stBytesRemaining(Stack st);
-DIGIT stReadInteger(Stack st, int *error);
+DIGIT stReadDigit(Stack st, int *error);
 unsigned char *stReadOctetString(Stack st, size_t * length, int *error);
 unsigned char *stReadBitString(Stack st, size_t * length, int *error);
 size_t stReadStartSequenceAndLength(Stack st, int *error);
@@ -73,7 +73,6 @@ int stWriteBitString(Stack st, unsigned char *bytes, size_t nbytes);
 int stWriteStartSequence(Stack st);
 int stWriteStartOctetString(Stack st);
 int stWriteStartBitString(Stack st);
-int stWriteRsaEncryptionOI(Stack st);
 int stWriteBigInteger(Stack st, BigInteger n);
 
 /*
@@ -110,6 +109,7 @@ int textToHMAC512(unsigned char *text, size_t tlen, unsigned char *key, size_t k
 /*
   Password-Based Key Derivation Function
  */
+
 int pbkdf2_hmac_sha256(const uint8_t *password, size_t password_len, const uint8_t *salt, size_t salt_len,
                         uint32_t iterations, uint8_t *derived_key, size_t key_len);
 int pbkdf2_hmac_sha512(const uint8_t *password, size_t password_len, const uint8_t *salt, size_t salt_len,
@@ -127,18 +127,23 @@ int pbkdf2_hmac_sha512(const uint8_t *password, size_t password_len, const uint8
 #define ENCRYPTION_AES_ERROR -3
 #define ENCRYPTION_FILE_NOT_FOUND -4
 #define ENCRYPTION_WRITE_FILE_ERROR -5
+#define KDFLENKEYS 96
+#define SALTLEN 48
+#define KDFHMACSHA256 1
+#define KDFHMACSHA512 2
+#define KDFARGON2 3
 
-char *getPassword(const char *text);
+char *getPassphrase(const char *text);
 char *getAndVerifyPassphrase(unsigned int msize);
 uint8_t getRandomSalt(unsigned char *salt);
-int encryptStackAES(Stack st, uint8_t mode);
-int decryptStackAES(Stack st, uint8_t mode);
+int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type);
+int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type);
 
 /*
-  Encrypt and decrypt with AES
+  Encrypt and decrypt files with AES
 */
-int encryptFileWithAES(char *infile, char **outfile, int ascii);
-int decryptFileWithAES(char *infile, char *outfile);
+int encryptFileWithAES(char *infile, char **outfile, uint8_t type, int ascii);
+int decryptFileWithAES(char *infile, char *outfile, uint8_t type);
 
 /*
 	Clear comments

@@ -120,3 +120,29 @@ final:
 	freeBigInteger(lx);
 	return NULL;
 }
+
+BigInteger leastCommonMultipleOfBigIntegers(BigInteger n1, BigInteger n2)
+/*
+  The algorithm uses the absolute values of n1 and n2
+  Returns r = lcm(n1,n2)
+*/
+{
+	BigInteger t, r, q, x, y;
+	t = r = q = NULL;
+	if ((t = extendedEuclidAlgorithmBigIntegers(n1, n2, &x, &y)) == NULL)
+		goto final;
+	if ((r = divideBigIntegerByBigInteger(n1, t, &q)) == NULL)
+		goto final;
+	if (sizeOfBigInteger(r) > 0)
+		goto final;
+	freeBigInteger(t);
+	if ((t = multiplyTwoBigIntegers(q, n2)) == NULL)
+		goto final;
+
+final:
+	freeBigInteger(r);
+	freeBigInteger(q);
+	freeBigInteger(x);
+	freeBigInteger(y);
+	return t;
+}
