@@ -22,17 +22,32 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
-#include <bigintegers.h>
-#include <mceutils.h>
-
 #ifndef H_MCERSA_H_
 #define H_MCERSA_H_ 1
+
+#include <mceutils.h>
 
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #define freeZeroData(s,n) spFreeZeroData((char **)(&(s)),(n));
 #define freePrivateRSAKey(r) free_RSA_PrivateKey(&(r))
 #define freePublicRSAKey(r) free_RSA_PublicKey(&(r))
+#define SIGNATURE_OK 0
+#define SIGNATURE_ERROR -1
+#define SIGNATURE_BAD -2
+#define SIGNATURE_OPEN_FILE_ERROR -3
+#define SIGNATURE_FILE_NOT_FOUND -4
+#define SIGNATURE_WRITE_FILE_ERROR -5
+#define SIGNATURE_PRIVATE_KEY_ERROR -6
+#define SIGNATURE_PUBLIC_KEY_ERROR -7
+
+#define ENCRYPTION_RSA_OK 0
+#define ENCRYPTION_RSA_ERROR -1
+#define ENCRYPTION_RSA_PUBLIC_KEY_ERROR -2
+#define ENCRYPTION_RSA_PRIVATE_KEY_ERROR -3
+#define ENCRYPTION_RSA_FILE_NOT_FOUND -4
+#define ENCRYPTION_RSA_OPEN_FILE_ERROR -5
+#define ENCRYPTION_RSA_WRITE_FILE_ERROR -6
 
 typedef struct {
 	BigInteger n;			// Modulo
@@ -89,14 +104,14 @@ int generateAndSavePairRSAKeys(int bits, char *filename, int aes);
 	Encrypt and decrypt files
  */
 int encryptFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii);
-int decryptFileWithRSA(char *infile, char *outfile, char *keyfile);
+int decryptFileWithRSA(char *infile, char *keyfile);
 
 /*
   Signatures
 */
-int signStackRSA(Stack st,PrivateRSAKey rsa,char *filename,uint8_t mode);
-int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode);
+int signStackRSA(Stack st, PrivateRSAKey rsa, const char *filename, uint8_t mode);
+int verifyAndExtractStackRSA(Stack st, PublicRSAKey rsa, uint8_t mode);
 int signFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii);
-int verifyAndExtractSignedFileWithRSA(char *infile,char *keyfile);
+int verifyAndExtractSignedFileWithRSA(char *infile, char *keyfile);
 
 #endif				/* H_MCERSA_H_ */

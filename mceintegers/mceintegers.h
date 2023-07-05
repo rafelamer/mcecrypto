@@ -1,5 +1,5 @@
 /**************************************************************************************
-* Filename:   bigintegers.h
+* Filename:   mceintegers.h
 * Author:     Rafel Amer (rafel.amer AT upc.edu)
 * Copyright:  Rafel Amer 2018-2023
 * Disclaimer: This code is presented "as is" and it has been written to 
@@ -30,8 +30,8 @@
 #include <unistd.h>
 #include <string.h>
 
-#ifndef H_BIGINTEGERS_H_
-#define H_BIGINTEGERS_H_ 1
+#ifndef H_MCEINTEGERS_H_
+#define H_MCEINTEGERS_H_ 1
 
 #define DIGIT unsigned long long int
 #define ALLOCSIZE 32
@@ -260,4 +260,4 @@ EllipticCurvePoint randomEllipticCurvePoint(EllipticCurve ec);
 void printEllipticCurvePointInBase(EllipticCurvePoint P,DIGIT b);
 void printEllipticCurvePoint(EllipticCurvePoint P);
 
-#endif /* H_BIGINTEGERS_H_*/
+#endif /* H_MCEINTEGERS_H_*/

@@ -22,7 +22,7 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
-#include <bigintegers.h>
+#include <mceintegers.h>
 #include <string.h>
 
 int addDigitToBigInteger(BigInteger n, DIGIT m, size_t pos)

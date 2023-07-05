@@ -22,7 +22,7 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
-#include <bigintegers.h>
+#include <mceintegers.h>
 
 BigInteger extendedEuclidAlgorithmBigIntegers(BigInteger n1, BigInteger n2, BigInteger * x, BigInteger * y)
 /*

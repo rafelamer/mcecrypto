@@ -22,7 +22,7 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
-#include <bigintegers.h>
+#include <mceintegers.h>
 #include <string.h>
 
 static const char *spDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/";

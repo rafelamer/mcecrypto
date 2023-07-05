@@ -22,7 +22,7 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
-#include <bigintegers.h>
+#include <mceintegers.h>
 #include <stdlib.h>
 
 BigInteger modulusOfBigIntegerByPowerOfTwo(BigInteger n, DIGIT power)

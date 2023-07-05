@@ -22,7 +22,6 @@
  *
  *	      See https://www.gnu.org/licenses/
  ***************************************************************************************/
-#include <bigintegers.h>
 #include <mceutils.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -1119,6 +1118,18 @@ uint8_t getRandomSalt(unsigned char *salt)
 	return 1;
 }
 
+uint8_t getRandomSecret(unsigned char *secret)
+{
+	FILE *fp;
+	uint8_t ret = 1;
+	if ((fp = fopen("/dev/urandom", "r")) == NULL)
+		return 0;
+	if (fread(secret, sizeof(unsigned char), SECRETLEN, fp) != SECRETLEN)
+		ret = 0;
+	fclose(fp);
+	return ret;
+}
+
 int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type)
 {
 	char *passphrase;
@@ -1160,7 +1171,7 @@ int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 	}
 	
 	/*
-		Derive the key and the iv from the password and salt
+		Derive the key and the iv from the password or secret and salt
 	*/
 	if (type == KDFHMACSHA512)
 		if (! pbkdf2_hmac_sha512(passphrase, passlen, salt, strlen((char *)salt), 128000, keys, KDFLENKEYS))

@@ -22,7 +22,7 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
-#include <bigintegers.h>
+#include <mceintegers.h>
 
 DIGIT nextSlidiwinWindowInBigInteger(BigInteger n, size_t *nbit, uint8_t size, uint8_t *error)
 /*

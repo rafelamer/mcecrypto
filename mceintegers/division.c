@@ -22,7 +22,7 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
-#include <bigintegers.h>
+#include <mceintegers.h>
 #define POSITIVE(x) if(x < 0) {x = -x;}
 #define NEGATIVE(x) if(x > 0) {x = -x;}
 #define ASSIGNTO(x,y) if (! copyBigIntegerTo(x,y)) goto final

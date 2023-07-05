@@ -31,11 +31,26 @@
 #include <stdint.h>
 #include <sys/stat.h>
 #include <limits.h>
-#include <bigintegers.h>
+#include <mceintegers.h>
 #include <argon2.h>
 
 #define freeStack(s)   stFreeStack(&(s))
 #define freeString(s)  free_string((char **)(&(s)))
+#define PASSALLOCSIZE 128
+#define STACKCOMPRESS 1
+#define STACKENCODE   2
+#define ENCRYPTION_AES_OK 0
+#define ENCRYPTION_AES_FILE_NOT_FOUND -1
+#define ENCRYPTION_AES_WRONG_PASSWORD -2
+#define ENCRYPTION_AES_ERROR -3
+#define ENCRYPTION_FILE_NOT_FOUND -4
+#define ENCRYPTION_WRITE_FILE_ERROR -5
+#define KDFLENKEYS 96
+#define SALTLEN 48
+#define KDFHMACSHA256 1
+#define KDFHMACSHA512 2
+#define KDFARGON2 3
+#define SECRETLEN 96
 
 typedef struct {
 	size_t used;
@@ -118,24 +133,10 @@ int pbkdf2_hmac_sha512(const uint8_t *password, size_t password_len, const uint8
 /*
   Encryption and decryption of Stack with AES
 */
-#define PASSALLOCSIZE 128
-#define STACKCOMPRESS 1
-#define STACKENCODE   2
-#define ENCRYPTION_AES_OK 0
-#define ENCRYPTION_AES_FILE_NOT_FOUND -1
-#define ENCRYPTION_AES_WRONG_PASSWORD -2
-#define ENCRYPTION_AES_ERROR -3
-#define ENCRYPTION_FILE_NOT_FOUND -4
-#define ENCRYPTION_WRITE_FILE_ERROR -5
-#define KDFLENKEYS 96
-#define SALTLEN 48
-#define KDFHMACSHA256 1
-#define KDFHMACSHA512 2
-#define KDFARGON2 3
-
 char *getPassphrase(const char *text);
 char *getAndVerifyPassphrase(unsigned int msize);
 uint8_t getRandomSalt(unsigned char *salt);
+uint8_t getRandomSecret(unsigned char *secret);
 int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type);
 int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type);
 

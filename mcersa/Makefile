@@ -1,7 +1,7 @@
 CFLAGS = -g -fPIC -I. -O3
 CC = gcc
 
-OBJECTS = oaep.o tiger.o rsa.o rsafiles.o
+OBJECTS = oaep.o tiger.o rsa.o rsafiles.o signature.o encryption.o
 
 INCLUDES = mcersa.h
 TARGET = libmcersa.so.1.0.0

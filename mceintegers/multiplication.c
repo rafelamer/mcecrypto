@@ -22,7 +22,7 @@
 *
 *	      See https://www.gnu.org/licenses/
 ***************************************************************************************/
-#include <bigintegers.h>
+#include <mceintegers.h>
 
 int multiplyBigIntegerByDigit(BigInteger n, DIGIT m)
 /*
