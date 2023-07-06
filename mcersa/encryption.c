@@ -263,7 +263,7 @@ int decryptFileWithRSA(char *infile, char *keyfile)
 	if (((c = stReadBigInteger(st, &error)) == NULL) || (error != 0))
 		goto final;
 	if ((m = privateDecryptOAEPRSA(rsa, c)) == NULL) {
-		ret = SIGNATURE_BAD;
+		ret = SIGNATURE_RSA_BAD;
 		goto final;
 	}
 	freeBigInteger(c);

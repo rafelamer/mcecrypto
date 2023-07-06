@@ -35,7 +35,7 @@ static const unsigned char esigf[] = "-----END RSA SIGNED FILE-----";
 #define WRITEERROR {                        \
 		close(fd);						    \
 		unlink(*outfile);					\
-		ret = SIGNATURE_WRITE_FILE_ERROR;   \
+		ret = SIGNATURE_RSA_WRITE_FILE_ERROR;   \
 		goto final;							\
 	}
 
@@ -47,7 +47,7 @@ int signStackRSA(Stack st, PrivateRSAKey rsa, const char *filename, uint8_t mode
 	int ret;
 	BigInteger m, c;
 
-	ret = SIGNATURE_ERROR;
+	ret = SIGNATURE_RSA_ERROR;
 	m = c = NULL;
 	text = NULL;
 	if ((st == NULL) || (st->data == NULL) || (st->used == 0))
@@ -109,7 +109,7 @@ int signStackRSA(Stack st, PrivateRSAKey rsa, const char *filename, uint8_t mode
 		text = NULL;
 	}
 
-	ret = SIGNATURE_OK;	
+	ret = SIGNATURE_RSA_OK;	
  
 final:
  	freeString(text);
@@ -127,7 +127,7 @@ int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 	int ret, error;
 	BigInteger m, c;
 
-	ret = SIGNATURE_ERROR;
+	ret = SIGNATURE_RSA_ERROR;
 	m = c = NULL;
 	text = s = NULL;
 	filename = NULL;
@@ -154,7 +154,7 @@ int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 	if (((c = stReadBigInteger(st, &error)) == NULL) || (error != 0))
 		goto final;
 	if ((m = publicDecryptOAEPRSA(rsa, c)) == NULL) {
-		ret = SIGNATURE_BAD;
+		ret = SIGNATURE_RSA_BAD;
 		goto final;
 	}
 	freeBigInteger(c);
@@ -186,7 +186,7 @@ int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 
 	if (strncmp((char *)digest,(char *)digest + SHA512_DIGEST_SIZE,SHA512_DIGEST_SIZE) != 0)
 	{
-		ret = SIGNATURE_BAD;
+		ret = SIGNATURE_RSA_BAD;
 		goto final;
 	}
 
@@ -207,7 +207,7 @@ int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 	int fd;
 	if ((fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) 
 	{
-		ret = SIGNATURE_OPEN_FILE_ERROR;
+		ret = SIGNATURE_RSA_OPEN_FILE_ERROR;
 		goto final;
 	}
 	if (write(fd, st->data, st->used) != st->used)
@@ -216,7 +216,7 @@ int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 		goto final;
 	}
 
-	ret = SIGNATURE_OK;
+	ret = SIGNATURE_RSA_OK;
 
 final:
  	freeString(text);
@@ -237,7 +237,7 @@ int signFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 
 	st = NULL;
 	rsa = NULL;
-	ret = SIGNATURE_ERROR;
+	ret = SIGNATURE_RSA_ERROR;
 	
 	if (*outfile == NULL)
 	{
@@ -263,7 +263,7 @@ int signFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 		freePrivateRSAKey(rsa);
 		if ((rsa = readEncryptedPrivateRSAKeyFromFile(keyfile)) == NULL)
 		{
-			ret = SIGNATURE_PRIVATE_KEY_ERROR;
+			ret = SIGNATURE_RSA_PRIVATE_KEY_ERROR;
 			goto final;
 		}
 	}
@@ -273,7 +273,7 @@ int signFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 	 */
 	if ((text = readFileBinaryMode(infile, &nbytes, &alloc)) == NULL)
 	{
-		ret = SIGNATURE_FILE_NOT_FOUND;
+		ret = SIGNATURE_RSA_FILE_NOT_FOUND;
 		goto final;
 	}
 	stSetDataInStack(st, text, nbytes, alloc);
@@ -285,7 +285,7 @@ int signFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 	mode = STACKCOMPRESS;
 	if (ascii)
 		mode += STACKENCODE;
-	if ((ret = signStackRSA(st,rsa,infile,mode)) != SIGNATURE_OK)
+	if ((ret = signStackRSA(st,rsa,infile,mode)) != SIGNATURE_RSA_OK)
 		goto final;
 
 	/*
@@ -294,7 +294,7 @@ int signFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 	int fd;
 	if ((fd = open(*outfile, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0)
 	{
-		ret = SIGNATURE_OPEN_FILE_ERROR;
+		ret = SIGNATURE_RSA_OPEN_FILE_ERROR;
 		goto final;
 	}
 
@@ -314,13 +314,13 @@ int signFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 		if (write(fd, "\n", 1) != 1)
 			WRITEERROR;
 		close(fd);
-		ret = SIGNATURE_OK;
+		ret = SIGNATURE_RSA_OK;
 		goto final;
 	}
 	if (write(fd, st->data, st->used) != st->used)
 		WRITEERROR;
 	
-	ret = SIGNATURE_OK;
+	ret = SIGNATURE_RSA_OK;
 	
 final:
 	freeStack(st);
@@ -340,14 +340,14 @@ int verifyAndExtractSignedFileWithRSA(char *infile,char *keyfile)
 	
 	st = NULL;
 	rsa = NULL;
-	ret = SIGNATURE_ERROR;
+	ret = SIGNATURE_RSA_ERROR;
 	
 	/*
 		Read the public key file
 	 */
 	if ((rsa = readPublicRSAKeyFromFile(keyfile)) == NULL)
 	{
-		ret = SIGNATURE_PUBLIC_KEY_ERROR;
+		ret = SIGNATURE_RSA_PUBLIC_KEY_ERROR;
 		goto final;
 	}
 
@@ -356,7 +356,7 @@ int verifyAndExtractSignedFileWithRSA(char *infile,char *keyfile)
 	*/
 	if ((text = readFileBinaryMode(infile, &nbytes, &alloc)) == NULL)
 	{
-		ret = SIGNATURE_FILE_NOT_FOUND;
+		ret = SIGNATURE_RSA_FILE_NOT_FOUND;
 		goto final;
 	}
 	if ((begin = clearCcommentsInText(text,bsigf,esigf)) != NULL)
@@ -378,10 +378,10 @@ int verifyAndExtractSignedFileWithRSA(char *infile,char *keyfile)
 		text = NULL;
 	}
 	mode += STACKCOMPRESS;
-	if ((ret = verifyAndExtractStackRSA(st, rsa, mode)) != SIGNATURE_OK)
+	if ((ret = verifyAndExtractStackRSA(st, rsa, mode)) != SIGNATURE_RSA_OK)
 		goto final;
 	
-	ret = SIGNATURE_OK;
+	ret = SIGNATURE_RSA_OK;
 	
 final:
 	freeStack(st);

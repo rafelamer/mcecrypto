@@ -231,7 +231,9 @@ typedef struct {
 	BigInteger Gy;
 	BigInteger n;
 	uint8_t ec;
-	char name[128];
+	char name[32];
+	uint8_t *oid;
+	uint8_t oidlen;
 } elliptic_curve;
 typedef elliptic_curve *EllipticCurve;
 typedef elliptic_curve **EllipticCurves;

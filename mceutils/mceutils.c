@@ -56,6 +56,14 @@ void free_string(char **s)
 	free(*s);
 	*s = NULL;
 }
+void free_zero_data(char **s,size_t n)
+{
+	if (*s == NULL)
+		return;
+	memset(*s,0,n);
+	free(*s);
+	*s = NULL;
+}
 
 unsigned char *encode_length(size_t value, size_t * len)
 {
@@ -663,6 +671,18 @@ final:
 	if (el != NULL)
 		free(el);
 	return ret;
+}
+
+int stAddContentsFromStack(Stack st, Stack s)
+{
+	if ((s->used + st->used) > st->alloc)
+		if (!stExpandStackInSize(st, s->used + 1024))
+			return 0;
+	if (st->used > 0)
+		memmove(st->data + s->used, s->data, s->used);
+	memcpy(st->data, s->data, s->used);
+	st->used += s->used;
+	return 1;
 }
 
 unsigned char *readFileBinaryMode(const char *filename, size_t * len, size_t * alloc)

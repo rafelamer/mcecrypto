@@ -56,18 +56,7 @@ BigInteger modulusOfBigInteger(BigInteger n1, BigInteger n2)
 {
 	BigInteger q, r;
 	if ((r = divideBigIntegerByBigInteger(n1, n2, &q)) == NULL)
-		return NULL;
-	/*
-	if (r->sign == -1)
-	{
-		freeBigInteger(q);
-		q = cloneBigInteger(n2);
-		q->sign = 1;
-		subtrackBigIntegerAbsoluteValueTo(q, r);
-		freeBigInteger(r);
-		return q;
-	}
-	*/
+		return NULL;	
 	freeBigInteger(q);
 	return r;
 }

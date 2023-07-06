@@ -345,6 +345,7 @@ int addAtPositionToBigInteger(BigInteger n,DIGIT factor,BigInteger z,DIGIT pos)
 	testSignAndZero(z);
 	cleanUpBigInteger(n);
 	cleanUpBigInteger(z);
+	
 	sn = n->sign;
 	sz = z->sign;
 	if ((aux = cloneBigInteger(z)) == NULL)
@@ -363,6 +364,7 @@ int addAtPositionToBigInteger(BigInteger n,DIGIT factor,BigInteger z,DIGIT pos)
 	{
 		if (! subtrackAbsolutValuesAtPositionToBigInteger(n, aux, 0, &cmp))
 			return 0;
+		n->sign = -cmp;
 		return 1;
 	}
 	/*

@@ -36,6 +36,7 @@
 
 #define freeStack(s)   stFreeStack(&(s))
 #define freeString(s)  free_string((char **)(&(s)))
+#define freeZeroData(s,n) free_zero_data((char **)(&(s)),(n));
 #define PASSALLOCSIZE 128
 #define STACKCOMPRESS 1
 #define STACKENCODE   2
@@ -63,6 +64,8 @@ typedef data_stack *Stack;
 /*
   Stack for DER
  */
+void free_string(char **s);
+void free_zero_data(char **s,size_t n);
 unsigned char *encode_length(size_t value, size_t * len);
 Stack stInitStack();
 Stack stInitStackWithSize(size_t size);
@@ -78,7 +81,7 @@ unsigned char *stReadBitString(Stack st, size_t * length, int *error);
 size_t stReadStartSequenceAndLength(Stack st, int *error);
 size_t stReadStartOctetStringAndLength(Stack st, int *error);
 size_t stReadStartBitStringAndLength(Stack st, int *error);
-int stReadOptionalRsaEncryptionOI(Stack st);
+int stReadOptionalRSAEncryptionOI(Stack st);
 BigInteger stReadBigInteger(Stack st, int *error);
 int stWriteNull(Stack st);
 int stWriteLength(Stack st, size_t length);
@@ -89,6 +92,7 @@ int stWriteStartSequence(Stack st);
 int stWriteStartOctetString(Stack st);
 int stWriteStartBitString(Stack st);
 int stWriteBigInteger(Stack st, BigInteger n);
+int stAddContentsFromStack(Stack st, Stack s);
 
 /*
   Base 64 encoding and decoding

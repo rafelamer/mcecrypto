@@ -166,7 +166,7 @@ uint8_t findFirstDigitByBisection(BigInteger t1, BigInteger t2,DIGIT *m)
 	{
 		uint8_t test;
 		test = 0;
-		if (compareBigIntegerAbsoluteValues(x,t1) < 0)
+		if (compareBigIntegerAbsoluteValues(x,t1) <= 0)
 		{
 			if (!addAtPositionToBigInteger(x, (DIGIT)1, t2, 0))
 				goto final;
@@ -370,17 +370,18 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 	*/
 	if (cmp == -1)
 	{
-		x = cloneBigInteger(n1);
 		if (n1->sign == 1)
 		{
+			x = cloneBigInteger(n1);
 			*q = initWithLongInt(0,1);
 			return x;
 		}
 		if (n1->sign == -1)
 		{
+			x = cloneBigInteger(n2);
+			x->sign = 1;
 			*q = initWithLongInt(1,n2->sign);
-			if (! addAbsolutValuesAtPositionToBigInteger(x,n2,0))
-				goto final;
+			subtrackBigIntegerAbsoluteValueTo(x,n1);
 			return x;		
 		}
 	}
@@ -392,6 +393,12 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 	t = sizeOfBigInteger(n2) - 1;
 	if ((x = cloneBigInteger(n1)) == NULL)
 		goto final;
+	
+	/*
+		Supose that n1 is positive
+	*/
+	x->sign = 1;
+
 	/*
 		Step 1
 	*/
@@ -474,17 +481,16 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 			x->sign = 1;
 		}			
 	}
-
 	if (n1->sign == 1 && n2->sign == 1)
 		return x;
 	if (n1->sign == -1)
 	{
 		x->sign = -1;
-		(*q)->sign = - n2->sign;
-		if (! addAbsolutValuesAtPositionToBigInteger(x,n2,0))
+		if (! addAtPositionToBigInteger(x, (DIGIT)1, n2, 0))
 			goto final;
 		if (! addDigitToBigInteger(*q, 1, 0))
 			goto final;
+		(*q)->sign = - n2->sign;
 	}
 	if(n2->sign == -1)
 		(*q)->sign = -1;

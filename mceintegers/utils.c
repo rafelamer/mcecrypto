@@ -68,7 +68,7 @@ BigInteger initBigInteger(size_t alloc)
 	}
 	n->used = 0;
 	n->alloc = alloc;
-	n->sign = 0;
+	n->sign = 1;
 	return n;
 }
 

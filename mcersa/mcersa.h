@@ -29,17 +29,16 @@
 
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
-#define freeZeroData(s,n) spFreeZeroData((char **)(&(s)),(n));
 #define freePrivateRSAKey(r) free_RSA_PrivateKey(&(r))
 #define freePublicRSAKey(r) free_RSA_PublicKey(&(r))
-#define SIGNATURE_OK 0
-#define SIGNATURE_ERROR -1
-#define SIGNATURE_BAD -2
-#define SIGNATURE_OPEN_FILE_ERROR -3
-#define SIGNATURE_FILE_NOT_FOUND -4
-#define SIGNATURE_WRITE_FILE_ERROR -5
-#define SIGNATURE_PRIVATE_KEY_ERROR -6
-#define SIGNATURE_PUBLIC_KEY_ERROR -7
+#define SIGNATURE_RSA_OK 0
+#define SIGNATURE_RSA_ERROR -1
+#define SIGNATURE_RSA_BAD -2
+#define SIGNATURE_RSA_OPEN_FILE_ERROR -3
+#define SIGNATURE_RSA_FILE_NOT_FOUND -4
+#define SIGNATURE_RSA_WRITE_FILE_ERROR -5
+#define SIGNATURE_RSA_PRIVATE_KEY_ERROR -6
+#define SIGNATURE_RSA_PUBLIC_KEY_ERROR -7
 
 #define ENCRYPTION_RSA_OK 0
 #define ENCRYPTION_RSA_ERROR -1

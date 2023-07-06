@@ -35,9 +35,13 @@ static const unsigned char epk[] = "-----END PRIVATE KEY-----";
 static const unsigned char bpubk[] = "-----BEGIN PUBLIC KEY-----";
 static const unsigned char epubk[] = "-----END PUBLIC KEY-----";
 
-static unsigned char rsaEncryption[] = { 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 
-0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01, 0x05, 0x00 };
+/*
+	The rsaEncription Object Identifier is 1.2.840.113549.1.1.1
+*/
 
+static unsigned char rsaEncryption[] = { 0x30, 0x0C, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01, 0x00 };
+
+#define OIDRSAENCRYPTIONLENGTH 14
 #define READ_BI_FROM_STACK(n)     n = stReadBigInteger(st, &error);  \
     if ((n == NULL) || (error != 0))                                 \
         goto final;
@@ -81,12 +85,12 @@ static unsigned char *clear_rsa_private_info(const unsigned char *string)
 
 int stWriteRSAEncryptionOI(Stack st)
 {
-	if ((15 + st->used) > st->alloc)
+	if ((OIDRSAENCRYPTIONLENGTH + st->used) > st->alloc)
 		if (! stExpandStackInSize(st, 1024))
 			return 0;
-	memmove(st->data + 15, st->data, st->used);
-	memcpy(st->data, rsaEncryption, 15);
-	st->used += 15;
+	memmove(st->data + OIDRSAENCRYPTIONLENGTH, st->data, st->used);
+	memcpy(st->data, rsaEncryption, OIDRSAENCRYPTIONLENGTH);
+	st->used += OIDRSAENCRYPTIONLENGTH;
 	return 1;
 }
 
@@ -97,9 +101,9 @@ int stReadOptionalRSAEncryptionOI(Stack st)
 	b = *(st->read);
 	if (b != 0x30)
 		return 0;
-	if (memcmp(st->read, rsaEncryption, 15) != 0)
+	if (memcmp(st->read, rsaEncryption, OIDRSAENCRYPTIONLENGTH) != 0)
 		return 0;
-	st->read += 15;
+	st->read += OIDRSAENCRYPTIONLENGTH;
 	return 1;
 }
 
