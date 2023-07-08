@@ -78,14 +78,20 @@ void free_ECC_PublicKey(PublicECCKey *key);
 int stWriteECCEncryptionOI(Stack st);
 int stReadECCEncryptionOI(Stack st);
 int stWriteECCEncryptionCurveOI(Stack st, EllipticCurve ec);
-EllipticCurve stReadECCEncryptionCurveOI(Stack st);
-PrivateECCKey readPrivateECCKeyFromFile(const char *filename);
+EllipticCurve stReadECCEncryptionCurveOI(Stack st, EllipticCurves ecs);
+PrivateECCKey readPrivateECCKeyFromStack(Stack st, EllipticCurves ecs);
+Stack writePrivateECCKeyToStack(PrivateECCKey key);
 uint8_t writePrivateECCKeyToFile(const char *filename, PrivateECCKey key);
-PrivateECCKey readEncryptedPrivateECCKeyFromFile(const char *filename);
-uint8_t writeEncryptedPrivateECCKeyToFile(const char *filename, PrivateECCKey key);
-PublicECCKey readPublicECCKeyFromFile(const char *filename);
+PrivateECCKey readPrivateECCKeyFromFile(const char *filename, EllipticCurves ecs);
+PublicECCKey publicECCKeyFromPrivate(PrivateECCKey key);
+Stack writePublicECCKeyToStack(PublicECCKey key);
 uint8_t writePublicECCKeyToFile(const char *filename, PublicECCKey key);
-int generateAndSavePairECCKeys(int bits, char *filename, int aes);
+PublicECCKey readPublicECCKeyFromStack(Stack st, EllipticCurves ecs);
+PublicECCKey readPublicECCKeyFromFile(const char *filename, EllipticCurves ecs);
+uint8_t writeEncryptedPrivateECCKeyToFile(const char *filename, PrivateECCKey key);
+PrivateECCKey readEncryptedPrivateECCKeyFromFile(const char *filename, EllipticCurves ecs);
+int generateAndSavePairECCKeys(char *filename, EllipticCurve ec, int aes);
+
 
 
 #endif				/* H_MCEECC_H_ */

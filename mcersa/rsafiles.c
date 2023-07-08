@@ -70,9 +70,9 @@ static unsigned char *clear_rsa_private_info(const unsigned char *string)
 	while (*begin == '\n')
 		begin++;
 
-	if (strncmp((char *)begin, "DEK-Info: AES-256-CBC", 22) != 0)
+	if (strncmp((char *)begin, "DEK-Info: AES-256-CBC", 21) != 0)
 		return NULL;
-	begin += 22;
+	begin += 21;
 
 	if ((end = (unsigned char *)strstr((char *)begin,(char *)ersapk)) == NULL)
 		return NULL;
