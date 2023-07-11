@@ -92,6 +92,13 @@ uint8_t writeEncryptedPrivateECCKeyToFile(const char *filename, PrivateECCKey ke
 PrivateECCKey readEncryptedPrivateECCKeyFromFile(const char *filename, EllipticCurves ecs);
 int generateAndSavePairECCKeys(char *filename, EllipticCurve ec, int aes);
 
+/*
+  Signatures
+*/
+int signStackECC(Stack st, PrivateECCKey key, const char *filename, uint8_t mode);
+int signFileWithECC(char *infile, char **outfile, char *keyfile, EllipticCurves ecs, int ascii);
+int verifyAndExtractStackECC(Stack st, PublicECCKey key, uint8_t mode);
+int verifyAndExtractSignedFileWithECC(char *infile, char *keyfile, EllipticCurves ecs);
 
 
 #endif				/* H_MCEECC_H_ */

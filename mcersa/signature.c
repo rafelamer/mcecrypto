@@ -67,6 +67,9 @@ int signStackRSA(Stack st, PrivateRSAKey rsa, const char *filename, uint8_t mode
 	*/
 	textToSHA512(st->data,nbytes,digest);
 
+	/*
+        Copy the (maybe compressed) data to the variable "text"
+    */
 	if ((text = (unsigned char *)malloc(nbytes * sizeof(unsigned char))) == NULL)
 		goto final;
 	memcpy(text,st->data,nbytes);
@@ -183,13 +186,6 @@ int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 		goto final;
 
 	textToSHA512(text, length, digest + SHA512_DIGEST_SIZE);
-
-	if (strncmp((char *)digest,(char *)digest + SHA512_DIGEST_SIZE,SHA512_DIGEST_SIZE) != 0)
-	{
-		ret = SIGNATURE_RSA_BAD;
-		goto final;
-	}
-
 	/*
 		Copy the contents of the file to the stack and decompress
 	*/
@@ -212,9 +208,16 @@ int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 	}
 	if (write(fd, st->data, st->used) != st->used)
 	{
-		ret = ENCRYPTION_WRITE_FILE_ERROR;
+		ret = ENCRYPTION_RSA_WRITE_FILE_ERROR;
 		goto final;
 	}
+
+	if (strncmp((char *)digest,(char *)digest + SHA512_DIGEST_SIZE,SHA512_DIGEST_SIZE) != 0)
+	{
+		ret = SIGNATURE_RSA_BAD;
+		goto final;
+	}
+
 
 	ret = SIGNATURE_RSA_OK;
 
@@ -260,7 +263,6 @@ int signFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 	 */
 	if (((rsa = readPrivateRSAKeyFromFile(keyfile)) == NULL))
 	{
-		freePrivateRSAKey(rsa);
 		if ((rsa = readEncryptedPrivateRSAKeyFromFile(keyfile)) == NULL)
 		{
 			ret = SIGNATURE_RSA_PRIVATE_KEY_ERROR;
@@ -378,6 +380,10 @@ int verifyAndExtractSignedFileWithRSA(char *infile,char *keyfile)
 		text = NULL;
 	}
 	mode += STACKCOMPRESS;
+
+	/*
+		Verify the data in the stack
+	*/
 	if ((ret = verifyAndExtractStackRSA(st, rsa, mode)) != SIGNATURE_RSA_OK)
 		goto final;
 	

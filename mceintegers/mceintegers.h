@@ -107,6 +107,7 @@ void free_string(char **s);
 int digitIsPowerOfTwo(DIGIT m, size_t * power);
 BigInteger initBigInteger(size_t alloc);
 BigInteger initWithLongInt(DIGIT m,int8_t s);
+BigInteger initBigIntegerFromBinaryData(size_t nbits, unsigned char *data, size_t lendata);
 BigInteger cloneBigInteger(BigInteger n);
 BigInteger clonePartOfBigInteger(BigInteger n,size_t pos,size_t len);
 int copyBigIntegerTo(BigInteger n, BigInteger m);

@@ -28,10 +28,10 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-static const unsigned char beccpk[] = "-----BEGIN ECC PRIVATE KEY-----";
-static const unsigned char eeccpk[] = "-----END ECC PRIVATE KEY-----";
-static const unsigned char beccpubk[] = "-----BEGIN ECC PUBLIC KEY-----";
-static const unsigned char eeccpubk[] = "-----END ECC PUBLIC KEY-----";
+static const unsigned char beccpk[] = "-----BEGIN EC PRIVATE KEY-----";
+static const unsigned char eeccpk[] = "-----END EC PRIVATE KEY-----";
+static const unsigned char beccpubk[] = "-----BEGIN EC PUBLIC KEY-----";
+static const unsigned char eeccpubk[] = "-----END EC PUBLIC KEY-----";
 
 static unsigned char eccEncryption[] = {0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01};
 
@@ -649,6 +649,7 @@ PrivateECCKey readEncryptedPrivateECCKeyFromFile(const char *filename, EllipticC
 
 	if ((key = readPrivateECCKeyFromStack(st, ecs)) == NULL)
 		goto final;
+
 	ok = 1;
 
  final:

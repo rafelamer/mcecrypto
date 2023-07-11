@@ -1,7 +1,7 @@
 CFLAGS = -g -fPIC -I. -O3
 CC = gcc
 
-OBJECTS = ecc.o eccfiles.o
+OBJECTS = ecc.o eccfiles.o signature.o
 
 INCLUDES = mceecc.h
 TARGET = libmceecc.so.1.0.0

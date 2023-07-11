@@ -83,6 +83,33 @@ BigInteger initWithLongInt(DIGIT m,int8_t s)
 	return n;
 }
 
+BigInteger initBigIntegerFromBinaryData(size_t nbits, unsigned char *data, size_t lendata)
+{
+	BigInteger n;
+	size_t ndigits, nbytes, rest;
+	unsigned char *aux;
+	if (nbits > 8 * lendata)
+		nbits = 8 * lendata;
+	ndigits = (nbits + BITS_PER_DIGIT - 1) / BITS_PER_DIGIT;
+	nbytes = nbits / 8;
+	rest = nbits % 8;
+
+	if ((n = initBigInteger(ndigits + 4)) == NULL)
+		return NULL;
+	n->sign = 1;
+	n->used = ndigits;
+	n->alloc = ndigits + 4;
+	if (nbytes > 0)
+		memcpy(n->digits, data, nbytes);
+	if (rest == 0)
+		return n;
+	aux = (unsigned char *)(n->digits) + nbytes;
+	unsigned char m;
+	m = (1 << rest) - 1;
+	*aux = m & *(data + nbytes); 
+	return n;
+}
+
 BigInteger cloneBigInteger(BigInteger n)
 {
 	BigInteger m;

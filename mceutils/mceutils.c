@@ -1330,13 +1330,13 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		Derive the key and the iv from the passphrase and salt
 	*/
 	if (type == KDFHMACSHA512)
-		if (! pbkdf2_hmac_sha512(passphrase, passlen, salt, strlen((char *)salt), 128000, keys, KDFLENKEYS))
+		if (! pbkdf2_hmac_sha512(passphrase, passlen, salt, SALTLEN, 128000, keys, KDFLENKEYS))
 			goto final;
 	if (type == KDFHMACSHA256)
-		if (! pbkdf2_hmac_sha256(passphrase, passlen, salt, strlen((char *)salt), 128000, keys, KDFLENKEYS))
+		if (! pbkdf2_hmac_sha256(passphrase, passlen, salt, SALTLEN, 128000, keys, KDFLENKEYS))
 			goto final;
 	if (type == KDFARGON2)
-		if (argon2id_hash_raw(4, 16, 2, passphrase, passlen, salt, strlen((char *)salt), keys, KDFLENKEYS) != 0 )
+		if (argon2id_hash_raw(4, 16, 2, passphrase, passlen, salt, SALTLEN, keys, KDFLENKEYS) != 0 )
 			goto final;
 
 	/*

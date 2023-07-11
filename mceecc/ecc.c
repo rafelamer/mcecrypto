@@ -67,7 +67,7 @@ PrivateECCKey generateECCPrivateKey(EllipticCurve ec)
     {
         if ((p = randomPositiveBigIntegerWithBits(bits)) == NULL)
             goto final;
-        if (compareBigIntegerAbsoluteValues(p,ec->n) < 0)
+        if (compareBigIntegerAbsoluteValues(p,ec->n) <= 0)
             break;
         freeBigInteger(p);
     }
