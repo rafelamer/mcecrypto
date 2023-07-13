@@ -337,7 +337,7 @@ int divideBigIntegerByDigit(BigInteger n, DIGIT m, DIGIT * r)
 	return 1;
 }
 
-BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger * q)
+BigInteger divideBigIntegerByBigIntegerMenezes(BigInteger n1, BigInteger n2, BigInteger * q)
 /*
   Integer division
   Returns r and q such that n1 = q * n2 + r 
@@ -517,4 +517,201 @@ final:
 	freeBigInteger(t2);
 	return NULL;
 }
+
+BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger * q)
+/*
+  Integer division
+  Returns r and q such that n1 = q * n2 + r 
+*/
+{
+	BigInteger x, y, t1, t2, t3;
+	size_t i, n, t;
+	DIGIT norm;
+	uint8_t neg;
+	int cmp;
+	neg = (n1->sign == n2->sign) ? 1 : -1;
+	x = y = t1 = t2 = t3 = NULL;
+
+	/*
+		Error case: n2 == 0
+	*/
+	if (sizeOfBigInteger(n2) == 0)
+		return NULL;
+	/*
+		Trivial case 1: n1 == 0
+	*/
+	if (sizeOfBigInteger(n1) == 0)
+	{
+		*q = initWithLongInt(0,1);
+		x = initWithLongInt(0,1);
+		return x;
+	}
+	/*
+		Trivial case 2: n1 == n2
+	*/
+	if ((cmp = compareBigIntegerAbsoluteValues(n1, n2)) == 0)
+	{
+		*q = initWithLongInt(1,1);
+		x = initWithLongInt(0,1);
+		return x;
+	}
+	/*
+		Trivial case 3: |n1| < |n2| 
+	*/
+	if (cmp == -1)
+	{
+		if (n1->sign == 1)
+		{
+			x = cloneBigInteger(n1);
+			*q = initWithLongInt(0,1);
+			return x;
+		}
+		if (n1->sign == -1)
+		{
+			x = cloneBigInteger(n2);
+			x->sign = 1;
+			*q = initWithLongInt(1,n2->sign);
+			subtrackBigIntegerAbsoluteValueTo(x,n1);
+			return x;		
+		}
+	}
+	/*
+		General case: |n1| > |n2| 
+		First, we initialize the variables *q, t1, t2, x and y
+	*/
+		if ((*q = initBigInteger(n1->used + 2)) == NULL)
+		return NULL;
+	(*q)->used = n1->used + 2;
+	if (((t1 = initBigInteger(ALLOCSIZE)) == NULL) ||
+	    ((t2 = initBigInteger(ALLOCSIZE)) == NULL) ||
+	    ((x = cloneBigInteger(n1)) == NULL) || ((y = cloneBigInteger(n2)) == NULL))
+		goto final;
+
+	x->sign = y->sign = 1;
+	norm = bitsInBigInteger(y) % BITS_PER_DIGIT;
+	if (norm < (BITS_PER_DIGIT - 1))
+	{
+		norm = BITS_PER_DIGIT - 1 - norm;
+		if (! multiplyBigIntegerByPowerOfTwo(x, norm))
+			goto final;
+		if (! multiplyBigIntegerByPowerOfTwo(y, norm))
+			goto final;
+	} 
+	else
+	{
+		norm = 0;
+	}
+
+	n = x->used - 1;
+	t = y->used - 1;
+	if (! shiftBigIntegerToLeftNumberOfDigits(y, n - t))
+		goto final;
+
+	while (compareBigIntegerAbsoluteValues(x, y) != -1)
+	{
+		(*q)->digits[n - t]++;
+		subtrackBigIntegerAbsoluteValueTo(x,y);
+	}
+	shiftBigIntegerToRightNumberOfDigits(y, n - t);
+	for (i = n; i > t; i--)
+	{
+		size_t k = i - t - 1;
+		if (i > x->used)
+			continue;
+		if (x->digits[i] == y->digits[t])
+		{
+			(*q)->digits[k] = MAX_DIGIT;
+		} 
+		else
+		{
+			DOUBLEDIGIT z;
+			z = (DOUBLEDIGIT) (x->digits[i]) << BITS_PER_DIGIT;
+			z |= (DOUBLEDIGIT) (x->digits[i - 1]);
+			z /= (DOUBLEDIGIT) (y->digits[t]);
+			if (z > (DOUBLEDIGIT) MAX_DIGIT)
+				z = MAX_DIGIT;
+			(*q)->digits[k] = (DIGIT) z;
+		}
+		(*q)->digits[k] = (*q)->digits[k] + 1;
+		do
+		{
+			(*q)->digits[k] = (*q)->digits[k] - 1;
+			setZeroBigInteger(t1);
+			t1->digits[0] = (t == 0) ? 0 : y->digits[t - 1];
+			t1->digits[1] = y->digits[t];
+			t1->used = 2;
+			if (! multiplyBigIntegerByDigit(t1, (*q)->digits[k]))
+				goto final;
+			t2->digits[0] = (i < 2) ? 0 : x->digits[i - 2];
+			t2->digits[1] = (i < 1) ? 0 : x->digits[i - 1];
+			t2->digits[2] = x->digits[i];
+			t2->used = 3;
+		}
+		while (compareBigIntegerAbsoluteValues(t1, t2) == 1);
+
+		if (! copyBigIntegerTo(y, t1))
+			goto final;
+		if (! multiplyBigIntegerByDigit(t1, (*q)->digits[k]))
+			goto final;
+		
+		if (! shiftBigIntegerToLeftNumberOfDigits(t1, k))
+			goto final;
+		
+		if ((t3 = subtrackBigIntegers(x, t1)) == NULL)
+			goto final;	
+		
+		if (! copyBigIntegerTo(t3, x))
+			goto final;
+		freeBigInteger(t3);
+
+		if (x->sign == -1)
+		{
+			if (! copyBigIntegerTo(y, t1))
+				goto final;
+			if (! shiftBigIntegerToLeftNumberOfDigits(t1, k))
+				goto final;
+			if ((t3 = addBigIntegers(x, t1)) == NULL)
+				goto final;
+			if (! copyBigIntegerTo(t3, x))
+				goto final;
+			freeBigInteger(t3);
+		}
+	}
+
+	shiftBigIntegerToRightNumberOfBits(x, norm);
+	if (n1->sign == 1 && n2->sign == 1)
+		return x;
+	if (n1->sign == -1)
+	{
+		x->sign = -1;
+		if (! addAtPositionToBigInteger(x, (DIGIT)1, n2, 0))
+			goto final;
+		if (! addDigitToBigInteger(*q, 1, 0))
+			goto final;
+		(*q)->sign = - n2->sign;
+	}
+	if(n2->sign == -1)
+		(*q)->sign = -1;
+
+	freeBigInteger(t1);
+	freeBigInteger(t2);
+	freeBigInteger(y);
+	return x;
+
+final:
+	freeBigInteger(*q);
+	freeBigInteger(t1);
+	freeBigInteger(t2);
+	freeBigInteger(x);
+	freeBigInteger(y);
+	return NULL;
+}
+
+
+
+
+
+
+
+
 

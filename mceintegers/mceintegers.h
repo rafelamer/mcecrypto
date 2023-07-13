@@ -193,6 +193,7 @@ BigInteger divideBigIntegerByPowerOfTwo(BigInteger n, DIGIT power);
 BigInteger remainderOfBigIntegerDividedByPowerOfTwo(BigInteger n, DIGIT power);
 int divideBigIntegerByDigit(BigInteger n, DIGIT m, DIGIT * r);
 BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger * q);
+BigInteger divideBigIntegerByBigIntegerMenezes(BigInteger n1, BigInteger n2, BigInteger * q);
 
 /*
 	Modular arithmetic
