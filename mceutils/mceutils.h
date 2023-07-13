@@ -40,12 +40,13 @@
 #define PASSALLOCSIZE 128
 #define STACKCOMPRESS 1
 #define STACKENCODE   2
+#define STACKHMAC  4
 #define ENCRYPTION_AES_OK 0
 #define ENCRYPTION_AES_FILE_NOT_FOUND -1
 #define ENCRYPTION_AES_WRONG_PASSWORD -2
 #define ENCRYPTION_AES_ERROR -3
-#define ENCRYPTION_FILE_NOT_FOUND -4
-#define ENCRYPTION_WRITE_FILE_ERROR -5
+#define ENCRYPTION_AES_WRITE_FILE_ERROR -4
+#define ENCRYPTION_AES_HMAC_ERROR -5
 #define KDFLENKEYS 96
 #define SALTLEN 48
 #define KDFHMACSHA256 1
@@ -81,7 +82,6 @@ unsigned char *stReadBitString(Stack st, size_t * length, int *error);
 size_t stReadStartSequenceAndLength(Stack st, int *error);
 size_t stReadStartOctetStringAndLength(Stack st, int *error);
 size_t stReadStartBitStringAndLength(Stack st, int *error);
-int stReadOptionalRSAEncryptionOI(Stack st);
 BigInteger stReadBigInteger(Stack st, int *error);
 int stWriteNull(Stack st);
 int stWriteLength(Stack st, size_t length);
@@ -141,6 +141,7 @@ char *getPassphrase(const char *text);
 char *getAndVerifyPassphrase(unsigned int msize);
 uint8_t getRandomSalt(unsigned char *salt);
 uint8_t getRandomSecret(unsigned char *secret);
+void getRandomHMACSecret(unsigned char *hmac, unsigned char *data, size_t len);
 int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type);
 int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type);
 

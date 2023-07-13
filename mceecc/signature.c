@@ -100,8 +100,6 @@ int signStackECC(Stack st, PrivateECCKey key, const char *filename, uint8_t mode
         freeBigInteger(k);
         freeEllipticCurvePoint(R);
     }
-    if ((R = multiplyEllipticCurvePointByBigInteger(G, k, key->ec)) == NULL)
-        goto final;
 
     /*
 		Compute the digest and take the first "nbits" bits
@@ -393,7 +391,7 @@ int verifyAndExtractStackECC(Stack st, PublicECCKey key, uint8_t mode)
 	}
 	if (write(fd, st->data, st->used) != st->used)
 	{
-		ret = ENCRYPTION_ECC_WRITE_FILE_ERROR;
+		ret = SIGNATURE_ECC_WRITE_FILE_ERROR;
 		goto final;
 	}
 
@@ -466,7 +464,6 @@ int verifyAndExtractSignedFileWithECC(char *infile, char *keyfile, EllipticCurve
     */
     if ((pkey = readPublicECCKeyFromFile(keyfile, ecs)) == NULL)
         goto final;
-
 
     /*
 		Read the file and store the data Stack

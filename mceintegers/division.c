@@ -29,12 +29,23 @@
 
 int isBigIntegerDivisibleByDigit(BigInteger n, DIGIT m)
 {
-	DIGIT r;
-	if (! divideBigIntegerByDigit(n, m, &r))
-		return -1;
-	if (r == 0)
-		return 1;
-	return 0;
+	
+	DOUBLEDIGIT w = 0;
+    DIGIT t;
+    size_t i, k;
+    for (i = 0; i < n->used; i++)
+    {
+        k = n->used - i - 1;
+        w = (w << BITS_PER_DIGIT) | ((DOUBLEDIGIT) n->digits[k]);
+        if (w >= m)
+        {
+            t = (DIGIT) (w / m);
+            w -= ((DOUBLEDIGIT) t) * ((DOUBLEDIGIT) m);
+        }
+    }
+    if (w == 0)
+        return 1;
+    return 0;
 }
 
 void shiftBigIntegerToRightNumberOfDigits(BigInteger n, DIGIT ndigits)
@@ -93,6 +104,7 @@ void shiftBigIntegerToRightNumberOfBits(BigInteger n, DIGIT nbits)
 	}
 	n->used = sizeOfBigInteger(n);
 }
+
 uint8_t findFirstDigitByBisection(BigInteger t1, BigInteger t2,DIGIT *m)
 /*
 	If *m * t2 < t1, then we don't modify *m and the function returns 1

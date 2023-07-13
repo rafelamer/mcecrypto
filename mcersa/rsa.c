@@ -72,9 +72,9 @@ PrivateRSAKey generateRSAPrivateKey(size_t bits)
 	if (bits < 1024)
 		bits = 1024;
 
-	if ((rsa = (PrivateRSAKey) malloc(sizeof(private_rsa_key))) == NULL)
+	if ((rsa = (PrivateRSAKey)malloc(sizeof(private_rsa_key))) == NULL)
 		goto final;
-	if ((rsa->pub = (PublicRSAKey) malloc(sizeof(public_rsa_key))) == NULL)
+	if ((rsa->pub = (PublicRSAKey)malloc(sizeof(public_rsa_key))) == NULL)
 		goto final;
 	if ((p = randomBigIntegerStrongPrime(bits / 2)) == NULL)
 		goto final;

@@ -100,5 +100,10 @@ int signFileWithECC(char *infile, char **outfile, char *keyfile, EllipticCurves 
 int verifyAndExtractStackECC(Stack st, PublicECCKey key, uint8_t mode);
 int verifyAndExtractSignedFileWithECC(char *infile, char *keyfile, EllipticCurves ecs);
 
+/*
+	Encrypt and decrypt files
+ */
+int encryptFileWithECC(char *infile, char **outfile, char *keyfile, EllipticCurves ecs, int ascii);
+int decryptFileWithECC(char *infile, char *keyfile, EllipticCurves ecs);
 
 #endif				/* H_MCEECC_H_ */

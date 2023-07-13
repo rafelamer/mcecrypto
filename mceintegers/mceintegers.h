@@ -90,7 +90,7 @@ typedef __uint128_t DOUBLEDIGIT;
 #define SECP521R1 7
 #define TESTEC000 8
 
-#define RABINMILLERITERATIONS 25
+#define RABINMILLERITERATIONS 20
 
 typedef struct {
 	size_t used;
@@ -124,6 +124,7 @@ int compareBigIntegerAbsoluteValueWithDigitAtPos(BigInteger n, DIGIT m, DIGIT po
 void setZeroBigInteger(BigInteger n);
 int isOneBigInteger(BigInteger n);
 int isMinusOneBigInteger(BigInteger n);
+int isDiferenceOfBigIntegersMinusOne(BigInteger n1, BigInteger n2);
 void testSignAndZero(BigInteger n);
 int increaseSizeOfBigInteger(BigInteger n,size_t s);
 void free_big_integer(BigInteger *n);

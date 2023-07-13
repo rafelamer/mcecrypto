@@ -361,6 +361,24 @@ int isMinusOneBigInteger(BigInteger n)
 	return 1;
 }
 
+int isDiferenceOfBigIntegersMinusOne(BigInteger n1, BigInteger n2)
+/*
+	Returns 1 if n1 - n2 = 1, i.e., n1 = n2 + 1
+*/
+{
+	unsigned int i;
+	if (n1->used != n2->used)
+		return 0;
+	for (i = 1; i < n1->used; i++)
+	{
+		if (n1->digits[i] != n2->digits[i])
+			return 0;
+	}
+	if (n1->digits[0] == (n2->digits[0] + 1))
+		return 1;
+	return 0;
+}
+
 void testSignAndZero(BigInteger n)
 {
 	if (n->sign == 0) 

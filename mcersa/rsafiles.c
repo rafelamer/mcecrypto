@@ -478,7 +478,7 @@ PublicRSAKey readPublicRSAKeyFromFile(const char *filename)
 	if ((length == 0) || (error != 0))
 		goto final;
 
-	error = stReadOptionalRsaEncryptionOI(st);
+	error = stReadOptionalRSAEncryptionOI(st);
 
 	length = stReadStartBitStringAndLength(st, &error);
 	if ((length == 0) || (error != 0))

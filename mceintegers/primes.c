@@ -52,7 +52,8 @@ int rabinMillerTestForBigInteger(BigInteger n, size_t iterations)
 	BigInteger a, m, z;
 	size_t b, i, j;
 	int8_t r;
-
+	a = m = z = NULL;
+	
 	/*
 		Step 1
 		Obtain the largest b such that n - 1 = 2^b * m
@@ -79,14 +80,21 @@ int rabinMillerTestForBigInteger(BigInteger n, size_t iterations)
 		for (;;)
 		{
 			if (a == NULL)
+			{
 				if ((a = randomPositiveBigInteger(n->used)) == NULL)
 				{
 					r = -1;
 					goto final;
 				}
-			if (! randomizeBigInteger(a));
+			}
+			else
+			{ 
+				if (! randomizeBigInteger(a))
+					continue;
+			}
+			if (! normalizeBigIntegerModulus(&a,n))
 				continue;
-			if (compareBigIntegerAbsoluteValues(n,a) == -1)
+			if (compareBigIntegerAbsoluteValues(n,a) >= 0)
 				break;
 		}
 
@@ -103,10 +111,10 @@ int rabinMillerTestForBigInteger(BigInteger n, size_t iterations)
 			Step 2.3
 			If z != 1 and z != n - 1 do the following
 		*/
-		if (! ((isOneBigInteger(z) || isModularBigIntegerEqualToMinusOne(n,z))))
+		if (! ((isOneBigInteger(z) || isDiferenceOfBigIntegersMinusOne(n,z))))
 		{
 			j = 1;
-			while ((j < b) && (!(isModularBigIntegerEqualToMinusOne(n, z))))
+			while ((j < b) && (! isDiferenceOfBigIntegersMinusOne(n, z)))
 			{
 				if (modulusOfExponentialOfBigIntegerToAPowerOfTwo(&z, n, 1) == 0)
 				{
@@ -120,7 +128,7 @@ int rabinMillerTestForBigInteger(BigInteger n, size_t iterations)
 				}
 				j += 1;
 			}
-			if (! isModularBigIntegerEqualToMinusOne(n, z))
+			if (! isDiferenceOfBigIntegersMinusOne(n, z))
 			{
 				r = 0;
 				goto final;
@@ -152,7 +160,7 @@ BigInteger randomBigIntegerPrime(size_t bits)
 
 	if ((n = randomPositiveBigIntegerWithBits(bits)) == NULL)
 		return NULL;
-	n->digits[0] |= (DIGIT) 1;
+	n->digits[0] |= (DIGIT)1;
 	while (! isPrimeRabinMillerBigInteger(n,RABINMILLERITERATIONS))
 	{
 		if (! addDigitToBigInteger(n, (DIGIT)2, 0))
@@ -189,13 +197,14 @@ BigInteger randomBigIntegerStrongPrime(size_t bits)
 		goto final;
 	if ((t = randomBigIntegerPrime(bits / 2)) == NULL)
 		goto final;
+	
 	/*
 		Step 2
 		Select an integer i and set r = 2 * i * t + 1
 		If r is prime, continue with step 3
 		If not, set r = r + 2 * t and test again
 	*/
-	if ((i = randomPositiveBigInteger((DIGIT)1)) == NULL)
+	if ((i = randomPositiveBigInteger(1)) == NULL)
 		goto final;
 	if (! multiplyBigIntegerByPowerOfTwo(t, 1))	// t = 2 * t
 		goto final;
@@ -203,13 +212,15 @@ BigInteger randomBigIntegerStrongPrime(size_t bits)
 		goto final;
 	if (! addDigitToBigInteger(r, (DIGIT)1, 0))	// r = r + 1
 		goto final;
+	
 	for (;;)
 	{
-		if (isPrimeRabinMillerBigInteger(r, 20))
+		if (isPrimeRabinMillerBigInteger(r, RABINMILLERITERATIONS))
 			break;
 		if (! addAtPositionToBigInteger(r, (DIGIT)1, t, 0))
 			goto final;
 	}
+
 	/*
 		Now, we have r0
 
@@ -230,6 +241,7 @@ BigInteger randomBigIntegerStrongPrime(size_t bits)
 	if (! subtrackDigitToBigInteger(p, (DIGIT)1, 0))	// p = p - 1
 		goto final;
 	freeBigInteger(a);
+
 	/*
 		Now we have p0
 
@@ -246,7 +258,7 @@ BigInteger randomBigIntegerStrongPrime(size_t bits)
 		goto final;
 	if ((b = multiplyTwoBigIntegers(a, i)) == NULL)   // b = 2 * r0 * s * i 
 		goto final;
-	if (! addAtPositionToBigInteger(b, (DIGIT)1, p,(DIGIT)1)) // b = 2 * r0 * s * i + p0
+	if (! addAtPositionToBigInteger(b, (DIGIT)1, p, (DIGIT)0)) // b = 2 * r0 * s * i + p0
 		goto final;
 	for (;;)
 	{

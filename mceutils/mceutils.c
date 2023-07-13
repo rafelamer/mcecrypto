@@ -1,5 +1,5 @@
 /**************************************************************************************
- * Filename:   der.c
+ * Filename:   mceutils.c
  * Author:     Rafel Amer (rafel.amer AT upc.edu)
  * Copyright:  Rafel Amer 2018-2023
  * Disclaimer: This code is presented "as is" and it has been written to
@@ -41,13 +41,12 @@
 static const unsigned char baesf[] = "-----BEGIN AES ENCRYPTED FILE-----";
 static const unsigned char eaesf[] = "-----END AES ENCRYPTED FILE-----";
 
-#define WRITEERROR {                    	\
-		close(fd);							\
-		unlink(*outfile);					\
-		ret =  ENCRYPTION_WRITE_FILE_ERROR; \
-		goto final;						    \
+#define WRITEERROR {                    	    \
+		close(fd);							    \
+		unlink(*outfile);					    \
+		ret =  ENCRYPTION_AES_WRITE_FILE_ERROR; \
+		goto final;			  			        \
 	}
-
 
 void free_string(char **s)
 {
@@ -430,16 +429,16 @@ int stWriteLength(Stack st, size_t length)
 	return 1;
 }
 
-int stWriteInteger(Stack st, unsigned long long integer)
+int stWriteDigit(Stack st, DIGIT digit)
 {
 	size_t m, lent;
-	unsigned long long r;
+	DIGIT r;
 	unsigned char data[BYTES_PER_DIGIT + 1];
 	/*
 		Number of significative bytes in integer and how many bytes
 		we need to alloc
 	*/
-	r = integer;
+	r = digit;
 	memset(data, 0, BYTES_PER_DIGIT + 1);
 	m = BYTES_PER_DIGIT;
 	while (r > 0)
@@ -1150,12 +1149,25 @@ uint8_t getRandomSecret(unsigned char *secret)
 	return ret;
 }
 
+void getRandomHMACSecret(unsigned char *hmacsecret, unsigned char *data, size_t datalen)
+{
+	size_t i;
+	static const unsigned char map[17] = "0123456789ABCDEF";
+	for (i = 0; i < datalen; i++)
+	{
+		hmacsecret[2 * i] = map[(data[i] >> 4) & 0x0f];
+		hmacsecret[2 * i + 1] = map[(data[i]) & 0x0f];
+	}
+}
+
 int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type)
 {
 	char *passphrase;
 	size_t passlen, nbytes, alloc;
 	unsigned char *text;
 	uint8_t keys[KDFLENKEYS];
+	unsigned char hmac[HMAC_SHA512_DIGEST_LENGTH];
+	unsigned char hmacsecret[64];
 	unsigned int key_schedule[60];
 	unsigned char salt[SALTLEN];
 	int ret;
@@ -1194,13 +1206,13 @@ int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		Derive the key and the iv from the password or secret and salt
 	*/
 	if (type == KDFHMACSHA512)
-		if (! pbkdf2_hmac_sha512(passphrase, passlen, salt, strlen((char *)salt), 128000, keys, KDFLENKEYS))
+		if (! pbkdf2_hmac_sha512(passphrase, passlen, salt, SALTLEN, 128000, keys, KDFLENKEYS))
 			goto final;
 	if (type == KDFHMACSHA256)
-		if (! pbkdf2_hmac_sha256(passphrase, passlen, salt, strlen((char *)salt), 128000, keys, KDFLENKEYS))
+		if (! pbkdf2_hmac_sha256(passphrase, passlen, salt, SALTLEN, 128000, keys, KDFLENKEYS))
 			goto final;
 	if (type == KDFARGON2)
-		if (argon2id_hash_raw(4, 16, 2, passphrase, passlen, salt, strlen((char *)salt), keys, KDFLENKEYS) != 0 )
+		if (argon2id_hash_raw(4, 16, 2, passphrase, passlen, salt, SALTLEN, keys, KDFLENKEYS) != 0 )
 			goto final;
 	
 	/*
@@ -1231,21 +1243,34 @@ int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		goto final;
 	if (!aes_encrypt_cbc(st->data, nblocks * AES_BLOCK_SIZE, text, key_schedule, 256, keys + 32))
 		goto final;
-	memset(keys, 0, KDFLENKEYS);
 
 	/*
-		Set the stack with encrypted content
+		Compute the HMAC of the encrypted text
 	*/
-
+	if(mode & STACKHMAC)
+	{
+		getRandomHMACSecret(hmacsecret, keys + 64, 32);
+		if (! textToHMAC512(text, st->used, hmacsecret, 64, hmac))
+			goto final;
+	}
+	memset(keys, 0, KDFLENKEYS);
+	/*
+		Set the stack with encrypted content, the salt and the hmac
+	*/
 	if (! stReInitStackWithSize(st, nblocks * AES_BLOCK_SIZE + 1024))
 		goto final;
 	if (! stWriteOctetString(st, text, nblocks * AES_BLOCK_SIZE))
 		goto final;
-	if (! stWriteOctetString(st, salt, strlen((char *)salt)))
+	if (! stWriteOctetString(st, salt, SALTLEN))
 		goto final;
+	if(mode & STACKHMAC)
+	{
+		if (! stWriteOctetString(st, hmac, HMAC_SHA512_DIGEST_LENGTH))
+		goto final;
+	}
+	freeString(text);
 	if (!stWriteStartSequence(st))
 		goto final;
-	freeString(text);
 
 	/*
 		Encode to Base64
@@ -1273,6 +1298,8 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 	int ret, error;
 	uint8_t keys[KDFLENKEYS];
 	unsigned char salt[SALTLEN];
+	unsigned char hmacsecret[64];
+	unsigned char hmac[2 * HMAC_SHA512_DIGEST_LENGTH];
 	unsigned char *text, *s;
 	passphrase = NULL;
 	ret = ENCRYPTION_AES_ERROR;
@@ -1317,15 +1344,22 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		goto final;
 	if (length != stBytesRemaining(st))
 		goto final;
-
+	if (mode & STACKHMAC)
+	{
+		if ((s = stReadOctetString(st, &length, &error)) == NULL)
+		 	goto final;	
+		if ((length != HMAC_SHA512_DIGEST_LENGTH) || (error != 0))
+			goto final;
+		memcpy(hmac, s, length);
+		freeString(s);
+	}
 	if ((s = stReadOctetString(st, &length, &error)) == NULL)
-		goto final;	
+		 	goto final;	
 	if ((length != SALTLEN) || (error != 0))
 		goto final;
-
-	memcpy(salt, s, SALTLEN);
+	memcpy(salt, s, length);
 	freeString(s);
-
+	
 	/*
 		Derive the key and the iv from the passphrase and salt
 	*/
@@ -1348,6 +1382,22 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		goto final;
 	stSetDataInStack(st, text, length, length);
 	size_t nblocks = st->used / AES_BLOCK_SIZE;
+	text = NULL;
+
+	/*
+		Verify the HMAC tag
+	*/
+	if (mode & STACKHMAC)
+	{
+		getRandomHMACSecret(hmacsecret, keys + 64, 32);
+		if (! textToHMAC512(st->data, st->used, hmacsecret, 64, hmac + HMAC_SHA512_DIGEST_LENGTH))
+			goto final;
+		if (memcmp(hmac, hmac + HMAC_SHA512_DIGEST_LENGTH, HMAC_SHA512_DIGEST_LENGTH) != 0) 
+		{
+			ret = ENCRYPTION_AES_HMAC_ERROR;
+			goto final;
+		}
+	}
 	
 	if ((text = (unsigned char *)malloc(nblocks * AES_BLOCK_SIZE * sizeof(unsigned char))) == NULL)
 		goto final;
@@ -1392,15 +1442,15 @@ int encryptFileWithAES(char *infile, char **outfile, uint8_t type, int ascii)
 	ret = ENCRYPTION_AES_ERROR;
 	if (infile == NULL)
 	{
-		ret = ENCRYPTION_FILE_NOT_FOUND;
+		ret = ENCRYPTION_AES_FILE_NOT_FOUND;
 		goto final;
 	}
 	if (*outfile == NULL)
 	{
-		if((*outfile = (char *)calloc(strlen(infile) + 8,sizeof(char))) == NULL)
+		if((*outfile = (char *)calloc(strlen(infile) + 12,sizeof(char))) == NULL)
 			goto final;
 		if (ascii)
-			sprintf(*outfile, "%s.asc", infile);
+			sprintf(*outfile, "%s.aes.asc", infile);
 		else
 			sprintf(*outfile, "%s.aes", infile);
 	}
@@ -1416,7 +1466,7 @@ int encryptFileWithAES(char *infile, char **outfile, uint8_t type, int ascii)
 	 */
 	if ((text = readFileBinaryMode(infile, &nbytes, &alloc)) == NULL)
 	{
-		ret = ENCRYPTION_FILE_NOT_FOUND;
+		ret = ENCRYPTION_AES_FILE_NOT_FOUND;
 		goto final;
 	}
 	stSetDataInStack(st, text, nbytes, alloc);
@@ -1439,7 +1489,7 @@ int encryptFileWithAES(char *infile, char **outfile, uint8_t type, int ascii)
 	int fd;
 	if ((fd = open(*outfile, O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR)) < 0)
 	{
-		ret = ENCRYPTION_WRITE_FILE_ERROR;
+		ret = ENCRYPTION_AES_WRITE_FILE_ERROR;
 		goto final;
 	}
 	if (ascii)
@@ -1489,7 +1539,7 @@ int decryptFileWithAES(char *infile, char *outfile, uint8_t type)
 	 */
 	if ((text = readFileBinaryMode(infile, &nbytes, &alloc)) == NULL)
 	{
-		ret = ENCRYPTION_FILE_NOT_FOUND;
+		ret = ENCRYPTION_AES_FILE_NOT_FOUND;
 		goto final;
 	}
 	/*
@@ -1527,7 +1577,7 @@ int decryptFileWithAES(char *infile, char *outfile, uint8_t type)
 	int fd;
 	if ((fd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR)) < 0)
 	{
-		ret = ENCRYPTION_WRITE_FILE_ERROR;
+		ret = ENCRYPTION_AES_WRITE_FILE_ERROR;
 		goto final;
 	}
 	if (write(fd, st->data, st->used) != st->used)

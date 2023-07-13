@@ -28,11 +28,11 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
-#define WRITEERROR {                        \
-		close(fd);						    \
-		unlink(*outfile);					\
-		ret =  ENCRYPTION_WRITE_FILE_ERROR; \
-		goto final;							\
+#define WRITEERROR {                            \
+		close(fd);						        \
+		unlink(*outfile);					    \
+		ret =  ENCRYPTION_RSA_WRITE_FILE_ERROR; \
+		goto final;			 				    \
 	}
 
 static const unsigned char brsaf[] = "-----BEGIN RSA ENCRYPTED FILE-----";
@@ -86,24 +86,9 @@ int encryptFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 		ret = ENCRYPTION_RSA_FILE_NOT_FOUND;
 		goto final;
 	}
-	stSetDataInStack(st, text, nbytes, alloc);
-	text = NULL;
-	mode = STACKCOMPRESS;
-
+	
 	/*
-		Compress the data with zlib
-	*/
-	if ((text = zlib_uncompress_data(st->data, st->used, &nbytes, &length)) == NULL)
-		goto final;	
-	stSetDataInStack(st, text, nbytes, length);
-	text = NULL;
-
-	if ((text = (unsigned char *)malloc(nbytes * sizeof(unsigned char))) == NULL)
-		goto final;
-	memcpy(text,st->data,nbytes);
-	nbytes = st->used;
-	/*
-		ReInit the stack and write the compressed data and the filename to it
+		ReInit the stack and write the data and the filename to it
 	*/
 	if (! stReInitStackWithSize(st, nbytes + 1024))
 		goto final;
@@ -120,7 +105,7 @@ int encryptFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 	if (! getRandomSecret(secret))
 		goto final;
 	
-	if ((ret = encryptStackAES(st, secret, SECRETLEN, mode, KDFARGON2)) != ENCRYPTION_RSA_OK)
+	if (encryptStackAES(st, secret, SECRETLEN, mode, KDFARGON2) != ENCRYPTION_AES_OK)
 		goto final;
 
 	/*
@@ -217,7 +202,7 @@ int decryptFileWithRSA(char *infile, char *keyfile)
 		Read the file and store the data Stack
 	*/
 	if ((text = readFileBinaryMode(infile, &nbytes, &alloc)) == NULL) {
-		ret = ENCRYPTION_FILE_NOT_FOUND;
+		ret = ENCRYPTION_RSA_FILE_NOT_FOUND;
 		goto final;
 	}
 	if ((begin = clearCcommentsInText(text,brsaf,ersaf)) != NULL)

@@ -247,6 +247,28 @@ final:
 	return r;
 }
 
+int isModularBigIntegerEqualToMinusOne(BigInteger n,BigInteger p)
+{
+	BigInteger m;
+	int ret = 0;
+	size_t i;
+	if ((m = modulusOfBigInteger(n, p)) == NULL)
+		goto final;
+	if (m->used != p->used)
+		goto final;
+	for (i = 1; i < m->used; i++)
+	{
+		if (m->digits[i] != p->digits[i])
+			goto final;
+	}
+	if (p->digits[0] == (m->digits[0] + 1))
+		ret = 1;
+
+final:
+	freeBigInteger(m);
+	return ret;
+}
+
 int LegendreSymbol(BigInteger n,BigInteger p,uint8_t *error)
 /*
 	Returns the Legendre symbol of the numbers n and p. p must be prime

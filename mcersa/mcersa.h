@@ -49,15 +49,15 @@
 #define ENCRYPTION_RSA_WRITE_FILE_ERROR -6
 
 typedef struct {
-	BigInteger n;			// Modulo
+	BigInteger n;	    // Modulo
 	BigInteger ek;		// Encryption key
 } public_rsa_key;
 typedef public_rsa_key *PublicRSAKey;
 
 typedef struct {
 	PublicRSAKey pub;
-	BigInteger p;			  // Prime p
-	BigInteger q;			  // Prime q
+	BigInteger p;			// Prime p
+	BigInteger q;			// Prime q
 	BigInteger dk;			// Decryption key
 	BigInteger kp;			// dk mod (p - 1)
 	BigInteger kq;			// dk mod (q - 1)
