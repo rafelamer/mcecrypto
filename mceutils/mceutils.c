@@ -48,13 +48,6 @@ static const unsigned char eaesf[] = "-----END AES ENCRYPTED FILE-----";
 		goto final;			  			        \
 	}
 
-void free_string(char **s)
-{
-	if (*s == NULL)
-		return;
-	free(*s);
-	*s = NULL;
-}
 void free_zero_data(char **s,size_t n)
 {
 	if (*s == NULL)
