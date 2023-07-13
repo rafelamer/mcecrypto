@@ -1,0 +1,72 @@
+Filename:   README
+Author:     Rafel Amer (rafel.amer AT upc.edu)
+Copyright:  Rafel Amer 2018-2023
+Disclaimer: This code is presented "as is" and it has been written to 
+            implement the RSA encryption and decryption algorithm for 
+            educational purposes and should not be used in contexts that 
+            need cryptographically secure implementation
+	    
+License:    This library  is free software; you can redistribute it and/or
+            modify it under the terms of either:
+
+            * the GNU Lesser General Public License as published by the Free
+              Software Foundation; either version 3 of the License, or (at your
+              option) any later version.
+
+            or
+
+            * the GNU General Public License as published by the Free Software
+              Foundation; either version 2 of the License, or (at your option)
+	      any later version.
+
+	    See https://www.gnu.org/licenses/
+
+
+The files oaep.c oaep.h sboxes.c tiger.c and tiger.h are obtained from
+
+https://github.com/Rupan/rsa
+
+The README file from de repository says:
+
+This repository contains code which implements several crypto operations:
+
+ * perform EME-OAEP encoding, as specified in PKCS#1 version 2.1, using the Tiger hash
+ * perform RSA encryption, decryption, and signing operations using the GMP library [TODO]
+
+To test the oaep code, do this:
+
+ $ gcc -O0 -ggdb -Wall -W -DTEST tiger.o sboxes.o oaep.c -o oaep && ./oaep SomeRandomString
+
+Notes:
+
+To use the OAEP interface, see documentation in oaep.h.
+The Tiger code provided herein is largely unmodified from the reference implementation:
+
+ http://www.cs.technion.ac.il/~biham/Reports/Tiger/
+
+
+The files aes.c hmac.c hmac-sha256.c sha1.c sha512.c hmac-sha1.c hmac-sha512.c memxor.c
+    sha256.c aes.h config.h sha1.h sha512.h af_alg.h hmac.h memxor.h sha256.h u64.h
+are from the OATH Toolkit
+
+https://www.nongnu.org/oath-toolkit/
+
+Bibliography:
+
+(1) Handbook of Applied Cryptography
+    Alfred J. Menezes, Paul C. van Oorschot and   Scott A. Vanstone
+    CRC Press; 1 edition
+    1996
+    ISBN: 0849385237
+
+(2) Applied Cryptography: Protocols, Algorithms and Source Code in C
+    Bruce Schneier
+    Wiley; 1 edition
+    2015
+    ISBN: 1119096723
+
+(3) Introduction to Modern Cryptography
+    Jonathan Katz and Yehuda Lindell
+    Chapman and Hall/CRC; 2 edition
+    2014
+    ISBN: 1466570261
