@@ -32,8 +32,8 @@ static const unsigned char brsapk[] = "-----BEGIN RSA PRIVATE KEY-----";
 static const unsigned char ersapk[] = "-----END RSA PRIVATE KEY-----";
 static const unsigned char bpk[] = "-----BEGIN PRIVATE KEY-----";
 static const unsigned char epk[] = "-----END PRIVATE KEY-----";
-static const unsigned char bpubk[] = "-----BEGIN PUBLIC KEY-----";
-static const unsigned char epubk[] = "-----END PUBLIC KEY-----";
+static const unsigned char bpubk[] = "-----BEGIN RSA PUBLIC KEY-----";
+static const unsigned char epubk[] = "-----END RSA PUBLIC KEY-----";
 
 /*
 	The rsaEncription Object Identifier is 1.2.840.113549.1.1.1

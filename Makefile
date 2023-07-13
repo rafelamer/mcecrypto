@@ -1,5 +1,6 @@
 CFLAGS = -g -fPIC -I. -O3
 CC = gcc
+LIBS = -L/usr/local/lib -lmcecrypto -largon2 -lz
 
 FOLDERS = mceintegers mceutils mceecc mcersa 
 OBJECTS = mceintegers/utils.o mceintegers/addition.o mceintegers/multiplication.o mceintegers/karatsuba.o \
@@ -14,7 +15,7 @@ TARGET = libmcecrypto.so.1.0.0
 NAME1 = libmcecrypto.so.1
 NAME2 = libmcecrypto.so
 
-all: $(FOLDERS) $(TARGET)
+all: $(FOLDERS) $(TARGET) mcecrypto
 
 $(FOLDERS):
 	make -C $@
@@ -22,11 +23,18 @@ $(FOLDERS):
 $(TARGET): $(FOLDERS)
 	$(CC) -shared -fPIC -Wl,-soname,libmcecrypto.so.1 -o $(TARGET) $(OBJECTS)
 
+mcecrypto: cmdline.o cmdline.c mcecrypto.o
+	$(CC) -o mcecrypto mcecrypto.o cmdline.o $(LIBS)
+
+cmdline.c: cmdline.ggo
+	gengetopt --input=cmdline.ggo
+
 install: $(TARGET)
 	cp $(INCLUDES) /usr/local/include/
 	cp $(TARGET) /usr/local/lib/
 	ln -sf /usr/local/lib/$(TARGET) /usr/local/lib/$(NAME1) 
 	ln -sf /usr/local/lib/$(TARGET) /usr/local/lib/$(NAME2)
+	cp mcecrypto /usr/local/bin/
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)

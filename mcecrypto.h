@@ -25,7 +25,7 @@
 #ifndef H_MCECRYPTO_H_
 #define H_MCECRYPTO_H_ 1
 
-#include <mceinteger.h>
+#include <mceintegers.h>
 #include <mceutils.h>
 #include <mcersa.h>
 #include <mceecc.h>

@@ -79,6 +79,7 @@ int stWriteECCEncryptionOI(Stack st);
 int stReadECCEncryptionOI(Stack st);
 int stWriteECCEncryptionCurveOI(Stack st, EllipticCurve ec);
 EllipticCurve stReadECCEncryptionCurveOI(Stack st, EllipticCurves ecs);
+EllipticCurve findEllipticCurveFronName(unsigned char *name, EllipticCurves ecs);
 PrivateECCKey readPrivateECCKeyFromStack(Stack st, EllipticCurves ecs);
 Stack writePrivateECCKeyToStack(PrivateECCKey key);
 uint8_t writePrivateECCKeyToFile(const char *filename, PrivateECCKey key);

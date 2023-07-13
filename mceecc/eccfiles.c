@@ -128,6 +128,18 @@ EllipticCurve stReadECCEncryptionCurveOI(Stack st, EllipticCurves ecs)
 	return NULL;
 }
 
+EllipticCurve findEllipticCurveFronName(unsigned char *name, EllipticCurves ecs)
+{
+	EllipticCurve ec;
+	for (int i = 0;i < NISTCURVES - 1;i++)
+	{
+		ec = ecs[i];
+		if (memcmp(name,ec->name,strlen(ec->name)) == 0)
+			return ec;
+	}
+	return NULL;
+}
+
 PrivateECCKey readPrivateECCKeyFromStack(Stack st, EllipticCurves ecs)
 {
 	PrivateECCKey key;
