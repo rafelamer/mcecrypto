@@ -5,7 +5,7 @@ I'm teaching a course about mathematics and computer science at the Technical Un
 One of the goals of the project was that my students could study the code and that this was as simple as possible, so that I discarded complex libraries like OpenSSL or GNU GMP. Then, I wrote my own library for educational purposes. I'm not a cryptographer and I'm sure that it has bugs and should not be used in contexts that need cryptographically secure implementation. Use OpenSSL instead.
 
 To complement the RSA and ECC algorithms, I needed some symmetric cryptographic algorithms, so I downloaded different implementations from 
-[https://www.nongnu.org/oath-toolkit](OATH-Toolkit) and [https://github.com/Rupan/rsa](https://github.com/Rupan/rsa).
+[https://www.nongnu.org/oath-toolkit](https://www.nongnu.org/oath-toolkit) and [https://github.com/Rupan/rsa](https://github.com/Rupan/rsa).
 
 Thanks to Eli Biham and the OATH Toolkit team.
 
