@@ -1188,6 +1188,11 @@ int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 			goto final;
 		}
 		passlen = strlen(passphrase);
+		if (passlen < 10)
+		{
+			ret = ENCRYPTION_AES_PASSWORD_SHORT;
+			goto final;
+		}
 	} 
 	else
 	{
@@ -1288,13 +1293,14 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 	char *passphrase;
 	size_t passlen, nbytes;
 	unsigned int key_schedule[60];
-	int ret, error;
+	int ret, error, passwd;
 	uint8_t keys[KDFLENKEYS];
 	unsigned char salt[SALTLEN];
 	unsigned char hmacsecret[64];
 	unsigned char hmac[2 * HMAC_SHA512_DIGEST_LENGTH];
 	unsigned char *text, *s;
 	passphrase = NULL;
+	passwd = 0;
 	ret = ENCRYPTION_AES_ERROR;
 	
 	if ((st == NULL) || (st->data == NULL) || (st->used == 0))
@@ -1311,6 +1317,7 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 			goto final;
 		}
 		passlen = strlen(passphrase);
+		passwd = 1;
 	} 
 	else
 	{
@@ -1411,7 +1418,11 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 	if (mode & STACKCOMPRESS)
 	{
 		if ((text = zlib_uncompress_data(st->data, st->used, &nbytes, &length)) == NULL)
+		{
+			if (passwd == 1)
+				ret = ENCRYPTION_AES_WRONG_PASSWORD;
 			goto final;
+		}
 		stSetDataInStack(st, text, nbytes, length);
 	}
 
@@ -1577,6 +1588,7 @@ int decryptFileWithAES(char *infile, char *outfile, uint8_t type)
 	{
 		close(fd);
 		unlink(outfile);
+		ret = ENCRYPTION_AES_WRITE_FILE_ERROR;
 		goto final;
 	}
 

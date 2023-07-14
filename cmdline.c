@@ -45,8 +45,9 @@ const char *gengetopt_args_info_help[] = {
   "  -c, --ec=STRING       Elliptic curve  (possible values=\"secp192k1\",\n                          \"secp192r1\", \"secp224k1\", \"secp224r1\",\n                          \"secp256k1\", \"secp256r1\", \"secp384r1\",\n                          \"secp521r1\" default=`secp521r1')",
   "  -a, --ascii           Writes the output file in ASCII format  (default=off)",
   "  -k, --keyfile=STRING  File of the public or private RSA or ECC key",
-  "  -w, --show            Shows a public or private RSA key  (default=off)",
-  "  -n, --noaes           Saves the RSA private key unencrypted  (default=off)",
+  "  -t, --keytype=STRING  Type of public or private key  (possible\n                          values=\"rsapublic\", \"rsaprivate\", \"eccpublic\",\n                          \"eccprivate\", \"eccpublic\" default=`rsaprivate')",
+  "  -w, --show            Shows a public or private RSA or ECC key  (default=off)",
+  "  -n, --noaes           Saves the RSA or ECC private key unencrypted\n                          (default=off)",
   "  -x, --encryptkey      Encrypts an RSA or ECC private key  (default=off)",
   "  -y, --decryptkey      Decrypts an RSA or ECC private key  (default=off)",
   "  -s, --sign            Signs a file  (default=off)",
@@ -73,6 +74,7 @@ static int
 cmdline_parser_required2 (struct gengetopt_args_info *args_info, const char *prog_name, const char *additional_error);
 
 const char *cmdline_parser_ec_values[] = {"secp192k1", "secp192r1", "secp224k1", "secp224r1", "secp256k1", "secp256r1", "secp384r1", "secp521r1", 0}; /*< Possible values for ec. */
+const char *cmdline_parser_keytype_values[] = {"rsapublic", "rsaprivate", "eccpublic", "eccprivate", "eccpublic", 0}; /*< Possible values for keytype. */
 
 static char *
 gengetopt_strdup (const char *s);
@@ -91,6 +93,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->ec_given = 0 ;
   args_info->ascii_given = 0 ;
   args_info->keyfile_given = 0 ;
+  args_info->keytype_given = 0 ;
   args_info->show_given = 0 ;
   args_info->noaes_given = 0 ;
   args_info->encryptkey_given = 0 ;
@@ -117,6 +120,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->ascii_flag = 0;
   args_info->keyfile_arg = NULL;
   args_info->keyfile_orig = NULL;
+  args_info->keytype_arg = gengetopt_strdup ("rsaprivate");
+  args_info->keytype_orig = NULL;
   args_info->show_flag = 0;
   args_info->noaes_flag = 0;
   args_info->encryptkey_flag = 0;
@@ -142,12 +147,13 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->ec_help = gengetopt_args_info_help[8] ;
   args_info->ascii_help = gengetopt_args_info_help[9] ;
   args_info->keyfile_help = gengetopt_args_info_help[10] ;
-  args_info->show_help = gengetopt_args_info_help[11] ;
-  args_info->noaes_help = gengetopt_args_info_help[12] ;
-  args_info->encryptkey_help = gengetopt_args_info_help[13] ;
-  args_info->decryptkey_help = gengetopt_args_info_help[14] ;
-  args_info->sign_help = gengetopt_args_info_help[15] ;
-  args_info->verify_help = gengetopt_args_info_help[16] ;
+  args_info->keytype_help = gengetopt_args_info_help[11] ;
+  args_info->show_help = gengetopt_args_info_help[12] ;
+  args_info->noaes_help = gengetopt_args_info_help[13] ;
+  args_info->encryptkey_help = gengetopt_args_info_help[14] ;
+  args_info->decryptkey_help = gengetopt_args_info_help[15] ;
+  args_info->sign_help = gengetopt_args_info_help[16] ;
+  args_info->verify_help = gengetopt_args_info_help[17] ;
   
 }
 
@@ -246,6 +252,8 @@ cmdline_parser_release (struct gengetopt_args_info *args_info)
   free_string_field (&(args_info->ec_orig));
   free_string_field (&(args_info->keyfile_arg));
   free_string_field (&(args_info->keyfile_orig));
+  free_string_field (&(args_info->keytype_arg));
+  free_string_field (&(args_info->keytype_orig));
   
   
 
@@ -339,6 +347,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "ascii", 0, 0 );
   if (args_info->keyfile_given)
     write_into_file(outfile, "keyfile", args_info->keyfile_orig, 0);
+  if (args_info->keytype_given)
+    write_into_file(outfile, "keytype", args_info->keytype_orig, cmdline_parser_keytype_values);
   if (args_info->show_given)
     write_into_file(outfile, "show", 0, 0 );
   if (args_info->noaes_given)
@@ -670,6 +680,7 @@ cmdline_parser_internal (
         { "ec",	1, NULL, 'c' },
         { "ascii",	0, NULL, 'a' },
         { "keyfile",	1, NULL, 'k' },
+        { "keytype",	1, NULL, 't' },
         { "show",	0, NULL, 'w' },
         { "noaes",	0, NULL, 'n' },
         { "encryptkey",	0, NULL, 'x' },
@@ -679,7 +690,7 @@ cmdline_parser_internal (
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVi:o:edgb:c:ak:wnxysv", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVi:o:edgb:c:ak:t:wnxysv", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -795,7 +806,19 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'w':	/* Shows a public or private RSA key.  */
+        case 't':	/* Type of public or private key.  */
+        
+        
+          if (update_arg( (void *)&(args_info->keytype_arg), 
+               &(args_info->keytype_orig), &(args_info->keytype_given),
+              &(local_args_info.keytype_given), optarg, cmdline_parser_keytype_values, "rsaprivate", ARG_STRING,
+              check_ambiguity, override, 0, 0,
+              "keytype", 't',
+              additional_error))
+            goto failure;
+        
+          break;
+        case 'w':	/* Shows a public or private RSA or ECC key.  */
         
         
           if (update_arg((void *)&(args_info->show_flag), 0, &(args_info->show_given),
@@ -805,7 +828,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'n':	/* Saves the RSA private key unencrypted.  */
+        case 'n':	/* Saves the RSA or ECC private key unencrypted.  */
         
         
           if (update_arg((void *)&(args_info->noaes_flag), 0, &(args_info->noaes_given),

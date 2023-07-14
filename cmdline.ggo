@@ -15,8 +15,9 @@ option "bits"       b "Bits of the generated RSA key" default="2048" dependon="g
 option "ec"         c "Elliptic curve" string values="secp192k1","secp192r1","secp224k1","secp224r1","secp256k1","secp256r1","secp384r1","secp521r1" optional default="secp521r1"
 option "ascii"      a "Writes the output file in ASCII format" flag off
 option "keyfile"    k "File of the public or private RSA or ECC key" optional string
-option "show"       w "Shows a public or private RSA key" flag off dependon="keyfile"
-option "noaes"      n "Saves the RSA private key unencrypted" flag off dependon="genkey"
+option "keytype"    t "Type of public or private key" string values="rsapublic","rsaprivate","eccpublic","eccprivate","eccpublic" optional default="rsaprivate"
+option "show"       w "Shows a public or private RSA or ECC key" flag off dependon="keyfile"
+option "noaes"      n "Saves the RSA or ECC private key unencrypted" flag off dependon="genkey"
 option "encryptkey" x "Encrypts an RSA or ECC private key" flag off
 option "decryptkey" y "Decrypts an RSA or ECC private key" flag off
 option "sign"		s "Signs a file" flag off

@@ -62,10 +62,13 @@ struct gengetopt_args_info
   char * keyfile_arg;	/**< @brief File of the public or private RSA or ECC key.  */
   char * keyfile_orig;	/**< @brief File of the public or private RSA or ECC key original value given at command line.  */
   const char *keyfile_help; /**< @brief File of the public or private RSA or ECC key help description.  */
-  int show_flag;	/**< @brief Shows a public or private RSA key (default=off).  */
-  const char *show_help; /**< @brief Shows a public or private RSA key help description.  */
-  int noaes_flag;	/**< @brief Saves the RSA private key unencrypted (default=off).  */
-  const char *noaes_help; /**< @brief Saves the RSA private key unencrypted help description.  */
+  char * keytype_arg;	/**< @brief Type of public or private key (default='rsaprivate').  */
+  char * keytype_orig;	/**< @brief Type of public or private key original value given at command line.  */
+  const char *keytype_help; /**< @brief Type of public or private key help description.  */
+  int show_flag;	/**< @brief Shows a public or private RSA or ECC key (default=off).  */
+  const char *show_help; /**< @brief Shows a public or private RSA or ECC key help description.  */
+  int noaes_flag;	/**< @brief Saves the RSA or ECC private key unencrypted (default=off).  */
+  const char *noaes_help; /**< @brief Saves the RSA or ECC private key unencrypted help description.  */
   int encryptkey_flag;	/**< @brief Encrypts an RSA or ECC private key (default=off).  */
   const char *encryptkey_help; /**< @brief Encrypts an RSA or ECC private key help description.  */
   int decryptkey_flag;	/**< @brief Decrypts an RSA or ECC private key (default=off).  */
@@ -86,6 +89,7 @@ struct gengetopt_args_info
   unsigned int ec_given ;	/**< @brief Whether ec was given.  */
   unsigned int ascii_given ;	/**< @brief Whether ascii was given.  */
   unsigned int keyfile_given ;	/**< @brief Whether keyfile was given.  */
+  unsigned int keytype_given ;	/**< @brief Whether keytype was given.  */
   unsigned int show_given ;	/**< @brief Whether show was given.  */
   unsigned int noaes_given ;	/**< @brief Whether noaes was given.  */
   unsigned int encryptkey_given ;	/**< @brief Whether encryptkey was given.  */
@@ -217,6 +221,7 @@ int cmdline_parser_required (struct gengetopt_args_info *args_info,
   const char *prog_name);
 
 extern const char *cmdline_parser_ec_values[];  /**< @brief Possible values for ec. */
+extern const char *cmdline_parser_keytype_values[];  /**< @brief Possible values for keytype. */
 
 
 #ifdef __cplusplus
