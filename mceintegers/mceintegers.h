@@ -39,7 +39,7 @@
 #define BITS_PER_DIGIT 64
 #define MAX_DIGIT 0xFFFFFFFFFFFFFFFFUL
 #define HIGHESTBITMASK 0x8000000000000000UL
-#define NISTCURVES 9
+#define NISTCURVES 16
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #define max(a,b) (((a) > (b)) ? (a) : (b))
@@ -88,7 +88,14 @@ typedef __uint128_t DOUBLEDIGIT;
 #define SECP256R1 5
 #define SECP384R1 6
 #define SECP521R1 7
-#define TESTEC000 8
+#define BRAINPOOLP160R1 8
+#define BRAINPOOLP192R1 9
+#define BRAINPOOLP224R1 10
+#define BRAINPOOLP256R1 11
+#define BRAINPOOLP320R1 12
+#define BRAINPOOLP384R1 13
+#define BRAINPOOLP512R1 14
+#define TESTEC000 15
 
 #define RABINMILLERITERATIONS 20
 

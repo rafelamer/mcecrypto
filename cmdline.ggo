@@ -12,7 +12,7 @@ option "encrypt"    e "Encrypts a file" flag off
 option "decrypt"    d "Decrypts a file" flag off
 option "genkey"     g "Generates a pair of RSA or ECC keys" flag off
 option "bits"       b "Bits of the generated RSA key" default="2048" dependon="genkey" optional int
-option "ec"         c "Elliptic curve" string values="secp192k1","secp192r1","secp224k1","secp224r1","secp256k1","secp256r1","secp384r1","secp521r1" optional default="secp521r1"
+option "ec"         c "Elliptic curve" string values="secp192k1","secp192r1","secp224k1","secp224r1","secp256k1","secp256r1","secp384r1","secp521r1","brainpoolP160r1","brainpoolP192r1","brainpoolP224r1","brainpoolP256r1","brainpoolP320r1","brainpoolP384r1","brainpoolP512r1" optional default="secp521r1"
 option "ascii"      a "Writes the output file in ASCII format" flag off
 option "keyfile"    k "File of the public or private RSA or ECC key" optional string
 option "keytype"    t "Type of public or private key" string values="rsapublic","rsaprivate","eccpublic","eccprivate","eccpublic" optional default="rsaprivate"
@@ -22,3 +22,4 @@ option "encryptkey" x "Encrypts an RSA or ECC private key" flag off
 option "decryptkey" y "Decrypts an RSA or ECC private key" flag off
 option "sign"		s "Signs a file" flag off
 option "verify"     v "Verify and extract a signed file" flag off
+option "list"       l "List the supported elliptic curves" flag off

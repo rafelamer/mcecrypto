@@ -77,6 +77,8 @@ struct gengetopt_args_info
   const char *sign_help; /**< @brief Signs a file help description.  */
   int verify_flag;	/**< @brief Verify and extract a signed file (default=off).  */
   const char *verify_help; /**< @brief Verify and extract a signed file help description.  */
+  int list_flag;	/**< @brief List the supported elliptic curves (default=off).  */
+  const char *list_help; /**< @brief List the supported elliptic curves help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
@@ -96,6 +98,7 @@ struct gengetopt_args_info
   unsigned int decryptkey_given ;	/**< @brief Whether decryptkey was given.  */
   unsigned int sign_given ;	/**< @brief Whether sign was given.  */
   unsigned int verify_given ;	/**< @brief Whether verify was given.  */
+  unsigned int list_given ;	/**< @brief Whether list was given.  */
 
 } ;
 

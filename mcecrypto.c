@@ -21,6 +21,35 @@ int main(int argc, char **argv)
 		goto final;
 	}
 	/*
+	
+	
+	
+		List elliptic curves
+	*/
+	if (ai.list_flag) 
+	{
+		size_t i;
+		EllipticCurves ecs = NULL;
+
+		if (ai.infile_given || ai.outfile_given || ai.encrypt_given || ai.decrypt_given ||
+		    ai.ascii_given || ai.keyfile_given || ai.keytype_given || ai.sign_flag ||
+		    ai.verify_flag || ai.ec_given || ai.bits_given || ai.noaes_flag) 
+		{
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		if ((ecs = initNISTEllipticCurves()) == NULL)
+		{
+			fprintf(stderr,"Error reading the data for NIST elliptic curves\n");
+			goto final;
+		}
+		for (i = 0;i < NISTCURVES - 1;i++)
+			printf("%s\n",ecs[i]->name);
+		ret = EXIT_SUCCESS;
+		freeEllipticCurves(ecs);
+		goto final;
+	}
+	/*
 
 
 

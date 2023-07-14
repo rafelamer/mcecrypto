@@ -42,7 +42,7 @@ const char *gengetopt_args_info_help[] = {
   "  -d, --decrypt         Decrypts a file  (default=off)",
   "  -g, --genkey          Generates a pair of RSA or ECC keys  (default=off)",
   "  -b, --bits=INT        Bits of the generated RSA key  (default=`2048')",
-  "  -c, --ec=STRING       Elliptic curve  (possible values=\"secp192k1\",\n                          \"secp192r1\", \"secp224k1\", \"secp224r1\",\n                          \"secp256k1\", \"secp256r1\", \"secp384r1\",\n                          \"secp521r1\" default=`secp521r1')",
+  "  -c, --ec=STRING       Elliptic curve  (possible values=\"secp192k1\",\n                          \"secp192r1\", \"secp224k1\", \"secp224r1\",\n                          \"secp256k1\", \"secp256r1\", \"secp384r1\",\n                          \"secp521r1\", \"brainpoolP160r1\",\n                          \"brainpoolP192r1\", \"brainpoolP224r1\",\n                          \"brainpoolP256r1\", \"brainpoolP320r1\",\n                          \"brainpoolP384r1\", \"brainpoolP512r1\"\n                          default=`secp521r1')",
   "  -a, --ascii           Writes the output file in ASCII format  (default=off)",
   "  -k, --keyfile=STRING  File of the public or private RSA or ECC key",
   "  -t, --keytype=STRING  Type of public or private key  (possible\n                          values=\"rsapublic\", \"rsaprivate\", \"eccpublic\",\n                          \"eccprivate\", \"eccpublic\" default=`rsaprivate')",
@@ -52,6 +52,7 @@ const char *gengetopt_args_info_help[] = {
   "  -y, --decryptkey      Decrypts an RSA or ECC private key  (default=off)",
   "  -s, --sign            Signs a file  (default=off)",
   "  -v, --verify          Verify and extract a signed file  (default=off)",
+  "  -l, --list            List the supported elliptic curves  (default=off)",
     0
 };
 
@@ -73,7 +74,7 @@ cmdline_parser_internal (int argc, char **argv, struct gengetopt_args_info *args
 static int
 cmdline_parser_required2 (struct gengetopt_args_info *args_info, const char *prog_name, const char *additional_error);
 
-const char *cmdline_parser_ec_values[] = {"secp192k1", "secp192r1", "secp224k1", "secp224r1", "secp256k1", "secp256r1", "secp384r1", "secp521r1", 0}; /*< Possible values for ec. */
+const char *cmdline_parser_ec_values[] = {"secp192k1", "secp192r1", "secp224k1", "secp224r1", "secp256k1", "secp256r1", "secp384r1", "secp521r1", "brainpoolP160r1", "brainpoolP192r1", "brainpoolP224r1", "brainpoolP256r1", "brainpoolP320r1", "brainpoolP384r1", "brainpoolP512r1", 0}; /*< Possible values for ec. */
 const char *cmdline_parser_keytype_values[] = {"rsapublic", "rsaprivate", "eccpublic", "eccprivate", "eccpublic", 0}; /*< Possible values for keytype. */
 
 static char *
@@ -100,6 +101,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->decryptkey_given = 0 ;
   args_info->sign_given = 0 ;
   args_info->verify_given = 0 ;
+  args_info->list_given = 0 ;
 }
 
 static
@@ -128,6 +130,7 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->decryptkey_flag = 0;
   args_info->sign_flag = 0;
   args_info->verify_flag = 0;
+  args_info->list_flag = 0;
   
 }
 
@@ -154,6 +157,7 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->decryptkey_help = gengetopt_args_info_help[15] ;
   args_info->sign_help = gengetopt_args_info_help[16] ;
   args_info->verify_help = gengetopt_args_info_help[17] ;
+  args_info->list_help = gengetopt_args_info_help[18] ;
   
 }
 
@@ -361,6 +365,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "sign", 0, 0 );
   if (args_info->verify_given)
     write_into_file(outfile, "verify", 0, 0 );
+  if (args_info->list_given)
+    write_into_file(outfile, "list", 0, 0 );
   
 
   i = EXIT_SUCCESS;
@@ -687,10 +693,11 @@ cmdline_parser_internal (
         { "decryptkey",	0, NULL, 'y' },
         { "sign",	0, NULL, 's' },
         { "verify",	0, NULL, 'v' },
+        { "list",	0, NULL, 'l' },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVi:o:edgb:c:ak:t:wnxysv", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVi:o:edgb:c:ak:t:wnxysvl", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -874,6 +881,16 @@ cmdline_parser_internal (
           if (update_arg((void *)&(args_info->verify_flag), 0, &(args_info->verify_given),
               &(local_args_info.verify_given), optarg, 0, 0, ARG_FLAG,
               check_ambiguity, override, 1, 0, "verify", 'v',
+              additional_error))
+            goto failure;
+        
+          break;
+        case 'l':	/* List the supported elliptic curves.  */
+        
+        
+          if (update_arg((void *)&(args_info->list_flag), 0, &(args_info->list_given),
+              &(local_args_info.list_given), optarg, 0, 0, ARG_FLAG,
+              check_ambiguity, override, 1, 0, "list", 'l',
               additional_error))
             goto failure;
         
