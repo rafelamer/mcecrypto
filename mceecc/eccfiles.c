@@ -111,7 +111,7 @@ EllipticCurve stReadECCEncryptionCurveOI(Stack st, EllipticCurves ecs)
 {
 	EllipticCurve ec;
 	unsigned char b;
-	uint8_t oid[10];
+	uint8_t oid[11];
 
 	b = *(st->read);
 	if (b != 0x06)
