@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 		}
 		if ((ecs = initNISTEllipticCurves()) == NULL)
 		{
-			fprintf(stderr,"Error reading the data for NIST elliptic curves\n");
+			fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
 			goto final;
 		}
 		for (i = 0;i < NISTCURVES - 1;i++)
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 			EllipticCurve ec;
 			if ((ecs = initNISTEllipticCurves()) == NULL)
 			{
-				fprintf(stderr,"Error reading the data for NIST elliptic curves\n");
+				fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
 				goto final;
 			}
 			if ((ec = findEllipticCurveFronName(ai.ec_arg, ecs)) == NULL)
@@ -291,7 +291,7 @@ int main(int argc, char **argv)
 			EllipticCurves ecs = NULL;
 			if ((ecs = initNISTEllipticCurves()) == NULL)
 			{
-				fprintf(stderr,"Error reading the data for NIST elliptic curves\n");
+				fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
 				goto final;
 			}
 			if ((key = readPrivateECCKeyFromFile(keyfile, ecs)) != NULL)
@@ -320,7 +320,7 @@ int main(int argc, char **argv)
 			EllipticCurves ecs = NULL;
 			if ((ecs = initNISTEllipticCurves()) == NULL)
 			{
-				fprintf(stderr,"Error reading the data for NIST elliptic curves\n");
+				fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
 				goto final;
 			}
 			if ((key = readPublicECCKeyFromFile(keyfile, ecs)) != NULL)
