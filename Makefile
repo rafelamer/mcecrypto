@@ -21,6 +21,7 @@ $(FOLDERS):
 	make -C $@
 
 $(TARGET): $(FOLDERS)
+	ln -sf libmcecrypto.so.1.0.0 libmcecrypto.so
 	$(CC) -shared -fPIC -Wl,-soname,libmcecrypto.so.1 -o $(TARGET) $(OBJECTS)
 
 mcecrypto: cmdline.o cmdline.c mcecrypto.o
