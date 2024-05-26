@@ -31,6 +31,9 @@ cmdline.c: cmdline.ggo
 	gengetopt --input=cmdline.ggo
 
 install: $(TARGET)
+	for folder in $(FOLDERS); do \
+	make install -C $$folder ; \
+	done
 	cp $(INCLUDES) /usr/local/include/
 	cp $(TARGET) /usr/local/lib/
 	ln -sf /usr/local/lib/$(TARGET) /usr/local/lib/$(NAME1) 
@@ -38,6 +41,11 @@ install: $(TARGET)
 	cp mcecrypto /usr/local/bin/
 
 clean:
+	for folder in $(FOLDERS); do \
+	make clean -C $$folder ; \
+	done
 	rm -f $(OBJECTS) $(TARGET)
 
 .PHONY: all $(FOLDERS)
+
+
