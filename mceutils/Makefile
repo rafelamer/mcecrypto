@@ -1,4 +1,4 @@
-CFLAGS = -g -fPIC -I. -O3
+CFLAGS = -g -fPIC -I. -I../mceintegers -O3
 CC = gcc
 
 OBJECTS = aes.o base64.o mceutils.o hmac-sha1.o hmac-sha256.o \

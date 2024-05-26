@@ -1,4 +1,4 @@
-CFLAGS = -g -fPIC -I. -O3
+CFLAGS = -g -fPIC -I. -I../mceutils -I../mceintegers -O3
 CC = gcc
 
 OBJECTS = sboxes.o oaep.o tiger.o rsa.o rsafiles.o signature.o encryption.o

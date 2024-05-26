@@ -1,6 +1,6 @@
-CFLAGS = -g -fPIC -I. -O3
+CFLAGS = -g -fPIC -I. -Imceutils -Imceintegers -Imcersa -Imceecc -O3
 CC = gcc
-LIBS = -L/usr/local/lib -lmcecrypto -largon2 -lz
+LIBS = -L/usr/local/lib -L. -lmcecrypto -largon2 -lz
 
 FOLDERS = mceintegers mceutils mceecc mcersa 
 OBJECTS = mceintegers/utils.o mceintegers/addition.o mceintegers/multiplication.o mceintegers/karatsuba.o \
