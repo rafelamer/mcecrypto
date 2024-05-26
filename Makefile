@@ -39,6 +39,7 @@ install: $(TARGET)
 	ln -sf /usr/local/lib/$(TARGET) /usr/local/lib/$(NAME1) 
 	ln -sf /usr/local/lib/$(TARGET) /usr/local/lib/$(NAME2)
 	cp mcecrypto /usr/local/bin/
+	ldconfig
 
 clean:
 	for folder in $(FOLDERS); do \
