@@ -2,11 +2,11 @@
 * Filename:   division.c
 * Author:     Rafel Amer (rafel.amer AT upc.edu)
 * Copyright:  Rafel Amer 2018-2023
-* Disclaimer: This code is presented "as is" and it has been written to 
-*             implement the RSA and ECC encryption and decryption algorithm for 
-*             educational purposes and should not be used in contexts that 
+* Disclaimer: This code is presented "as is" and it has been written to
+*             implement the RSA and ECC encryption and decryption algorithm for
+*             educational purposes and should not be used in contexts that
 *             need cryptographically secure implementation
-*	    
+*
 * License:    This library  is free software; you can redistribute it and/or
 *             modify it under the terms of either:
 *
@@ -29,7 +29,7 @@
 
 int isBigIntegerDivisibleByDigit(BigInteger n, DIGIT m)
 {
-	
+
 	DOUBLEDIGIT w = 0;
     DIGIT t;
     size_t i, k;
@@ -109,7 +109,7 @@ uint8_t findFirstDigitByBisection(BigInteger t1, BigInteger t2,DIGIT *m)
 /*
 	If *m * t2 < t1, then we don't modify *m and the function returns 1
 	If *m * t2 >= t1, then
-		We find the digit x such that 
+		We find the digit x such that
 	    	x <= *m
 			x * t2 < t1
 			(x+1) * t2 < t1
@@ -153,7 +153,7 @@ uint8_t findFirstDigitByBisection(BigInteger t1, BigInteger t2,DIGIT *m)
 		if (sign == 1)
 			(*m) += dm;
 		else
-			(*m) -= dm; 
+			(*m) -= dm;
 		// printf("%lu\n",*m);
 
 		if (compareBigIntegerAbsoluteValues(y,t1) > 0)
@@ -191,15 +191,15 @@ uint8_t findFirstDigitByBisection(BigInteger t1, BigInteger t2,DIGIT *m)
 				goto final;
 			(*m) -= 1;
 			if (test == 1)
-				break; 
+				break;
 		}
 	}
 	value = 1;
-	
+
 final:
 	freeBigInteger(x);
 	freeBigInteger(y);
-	freeBigInteger(z);	
+	freeBigInteger(z);
 	return value;
 }
 
@@ -325,7 +325,7 @@ int divideBigIntegerByDigit(BigInteger n, DIGIT m, DIGIT * r)
 		{
 			t = (DIGIT) (w / m);
 			w -= ((DOUBLEDIGIT) t) * ((DOUBLEDIGIT) m);
-		} 
+		}
 		else
 		{
 			t = 0;
@@ -340,10 +340,10 @@ int divideBigIntegerByDigit(BigInteger n, DIGIT m, DIGIT * r)
 BigInteger divideBigIntegerByBigIntegerMenezes(BigInteger n1, BigInteger n2, BigInteger * q)
 /*
   Integer division
-  Returns r and q such that n1 = q * n2 + r 
+  Returns r and q such that n1 = q * n2 + r
 
-  The general case |n1| > |n2| for this function uses the  Multiple-precision 
-  division algorithm described in A Handbook Of Applied Cryptography by 
+  The general case |n1| > |n2| for this function uses the  Multiple-precision
+  division algorithm described in A Handbook Of Applied Cryptography by
   Alfred J. Menezes, Paul C. van Oorschot and Scott A. Vanstone, pag. 598.
 
   If the base b is very large, i. e. b = 2^64, the step 3.2 is extremely slow. I wrote
@@ -378,7 +378,7 @@ BigInteger divideBigIntegerByBigIntegerMenezes(BigInteger n1, BigInteger n2, Big
 		return x;
 	}
 	/*
-		Trivial case 3: |n1| < |n2| 
+		Trivial case 3: |n1| < |n2|
 	*/
 	if (cmp == -1)
 	{
@@ -394,18 +394,18 @@ BigInteger divideBigIntegerByBigIntegerMenezes(BigInteger n1, BigInteger n2, Big
 			x->sign = 1;
 			*q = initWithLongInt(1,n2->sign);
 			subtrackBigIntegerAbsoluteValueTo(x,n1);
-			return x;		
+			return x;
 		}
 	}
 	/*
-		General case: |n1| > |n2| 
+		General case: |n1| > |n2|
 		First, we initialize the variable x
-	*/ 
+	*/
 	n = sizeOfBigInteger(n1) - 1;
 	t = sizeOfBigInteger(n2) - 1;
 	if ((x = cloneBigInteger(n1)) == NULL)
 		goto final;
-	
+
 	/*
 		Supose that n1 is positive
 	*/
@@ -420,17 +420,17 @@ BigInteger divideBigIntegerByBigIntegerMenezes(BigInteger n1, BigInteger n2, Big
 	/*
 		Step 2
 		If it is done like in the book A Handbook Of Applied Cryptography,
-		i.e. increasing (*q)->digits[n-t-1] one by one, 
+		i.e. increasing (*q)->digits[n-t-1] one by one,
 		it is very slow, so we need a method to accelerate the process.
 	*/
 	if ( compareBigIntegerAbsoluteValuesAtPosition(x, n2, n - t) >= 0)
 	{
 		if ((t2 = cloneBigInteger(n2)) == NULL)
-			goto final; 
+			goto final;
 		if (! shiftBigIntegerToLeftNumberOfDigits(t2,n-t))
 			goto final;
 		if ((t1 = cloneBigInteger(t2)) == NULL)
-			goto final; 
+			goto final;
 		(*q)->digits[n-t] = 1;
 		while ( compareBigIntegerAbsoluteValuesAtPosition(x,t2,0) == 1)
 		{
@@ -440,7 +440,7 @@ BigInteger divideBigIntegerByBigIntegerMenezes(BigInteger n1, BigInteger n2, Big
 		}
 		if (! findFirstDigitByBisection(x,t1,&((*q)->digits[n-t])))
 			goto final;
-			if (! subtrackAtPositionToBigInteger(x, (*q)->digits[n-t], n2, n-t))  
+			if (! subtrackAtPositionToBigInteger(x, (*q)->digits[n-t], n2, n-t))
             	goto final;
 		freeBigInteger(t1);
 		freeBigInteger(t2);
@@ -467,12 +467,12 @@ BigInteger divideBigIntegerByBigIntegerMenezes(BigInteger n1, BigInteger n2, Big
 			(*q)->digits[i-t-1] = LOHALF(z);
 		}
 		/*
-			Step 3.2	
+			Step 3.2
 		*/
 		if ((t1 = clonePartOfBigInteger(x,i,3)) == NULL)
 			goto final;
 		if ((t2 = clonePartOfBigInteger(n2,t,2)) == NULL)
-			goto final;	
+			goto final;
 		if (! findFirstDigitByBisection(t1,t2, &((*q)->digits[i-t-1])))
 			goto final;
 		freeBigInteger(t2);
@@ -491,8 +491,9 @@ BigInteger divideBigIntegerByBigIntegerMenezes(BigInteger n1, BigInteger n2, Big
 				goto final;
 			(*q)->digits[i-t-1] -= 1;
 			x->sign = 1;
-		}			
+		}
 	}
+
 	if (n1->sign == 1 && n2->sign == 1)
 		return x;
 	if (n1->sign == -1)
@@ -521,7 +522,7 @@ final:
 BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger * q)
 /*
   Integer division
-  Returns r and q such that n1 = q * n2 + r 
+  Returns r and q such that n1 = q * n2 + r
 */
 {
 	BigInteger x, y, t1, t2, t3;
@@ -556,7 +557,7 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 		return x;
 	}
 	/*
-		Trivial case 3: |n1| < |n2| 
+		Trivial case 3: |n1| < |n2|
 	*/
 	if (cmp == -1)
 	{
@@ -572,11 +573,11 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 			x->sign = 1;
 			*q = initWithLongInt(1,n2->sign);
 			subtrackBigIntegerAbsoluteValueTo(x,n1);
-			return x;		
+			return x;
 		}
 	}
 	/*
-		General case: |n1| > |n2| 
+		General case: |n1| > |n2|
 		First, we initialize the variables *q, t1, t2, x and y
 	*/
 		if ((*q = initBigInteger(n1->used + 2)) == NULL)
@@ -596,7 +597,7 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 			goto final;
 		if (! multiplyBigIntegerByPowerOfTwo(y, norm))
 			goto final;
-	} 
+	}
 	else
 	{
 		norm = 0;
@@ -621,7 +622,7 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 		if (x->digits[i] == y->digits[t])
 		{
 			(*q)->digits[k] = MAX_DIGIT;
-		} 
+		}
 		else
 		{
 			DOUBLEDIGIT z;
@@ -653,13 +654,13 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 			goto final;
 		if (! multiplyBigIntegerByDigit(t1, (*q)->digits[k]))
 			goto final;
-		
+
 		if (! shiftBigIntegerToLeftNumberOfDigits(t1, k))
 			goto final;
-		
+
 		if ((t3 = subtrackBigIntegers(x, t1)) == NULL)
-			goto final;	
-		
+			goto final;
+
 		if (! copyBigIntegerTo(t3, x))
 			goto final;
 		freeBigInteger(t3);
@@ -673,6 +674,8 @@ BigInteger divideBigIntegerByBigInteger(BigInteger n1, BigInteger n2, BigInteger
 			if ((t3 = addBigIntegers(x, t1)) == NULL)
 				goto final;
 			if (! copyBigIntegerTo(t3, x))
+				goto final;
+			if (! subtrackDigitToBigInteger(*q, (DIGIT) 1, 0))
 				goto final;
 			freeBigInteger(t3);
 		}
