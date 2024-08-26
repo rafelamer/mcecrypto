@@ -1,13 +1,13 @@
 /* Declarations of functions and data types used for SHA256 and SHA224 sum
    library functions.
-   Copyright (C) 2005-2006, 2008-2021 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2008-2024 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation, either version 2.1 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
@@ -18,11 +18,34 @@
 #ifndef SHA256_H
 # define SHA256_H 1
 
+/* This file uses HAVE_OPENSSL_SHA256.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
+
 # include <stdio.h>
 # include <stdint.h>
+# include <stdalign.h>
 
 # if HAVE_OPENSSL_SHA256
-#  include <openssl/sha.h>
+#  ifndef OPENSSL_API_COMPAT
+#   define OPENSSL_API_COMPAT 0x10101000L /* FIXME: Use OpenSSL 1.1+ API.  */
+#  endif
+/* If <openssl/macros.h> would give a compile-time error, don't use OpenSSL.  */
+#  include <openssl/opensslv.h>
+#  if OPENSSL_VERSION_MAJOR >= 3
+#   include <openssl/configuration.h>
+#   if (OPENSSL_CONFIGURED_API \
+        < (OPENSSL_API_COMPAT < 0x900000L ? OPENSSL_API_COMPAT : \
+           ((OPENSSL_API_COMPAT >> 28) & 0xF) * 10000 \
+           + ((OPENSSL_API_COMPAT >> 20) & 0xFF) * 100 \
+           + ((OPENSSL_API_COMPAT >> 12) & 0xFF)))
+#    undef HAVE_OPENSSL_SHA256
+#   endif
+#  endif
+#  if HAVE_OPENSSL_SHA256
+#   include <openssl/sha.h>
+#  endif
 # endif
 
 # ifdef __cplusplus
@@ -93,6 +116,7 @@ extern void *sha224_buffer (const char *buffer, size_t len,
                             void *restrict resblock);
 
 # endif
+
 /* Compute SHA256 (SHA224) message digest for bytes read from STREAM.
    STREAM is an open file stream.  Regular files are handled more efficiently.
    The contents of STREAM from its current position to its end will be read.

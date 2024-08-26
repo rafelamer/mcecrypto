@@ -22,6 +22,8 @@
 /* Define to 1 if using 'alloca.c'. */
 /* #undef C_ALLOCA */
 
+#define _GL_CONFIG_H_INCLUDED 1
+
 /* Define as the bit index in the word where to find bit 0 of the exponent of
    'double'. */
 #define DBL_EXPBIT0_BIT 20
