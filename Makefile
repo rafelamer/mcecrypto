@@ -25,7 +25,7 @@ $(TARGET): $(FOLDERS)
 	$(CC) -shared -fPIC -Wl,-soname,libmcecrypto.so.1 -o $(TARGET) $(OBJECTS)
 
 mcecrypto: cmdline.o cmdline.c mcecrypto.o
-	$(CC) -o mcecrypto mcecrypto.o cmdline.o $(LIBS)
+	$(CC) -o mcecrypto mcecrypto.o cmdline.o -O3 $(LIBS)
 
 cmdline.c: cmdline.ggo
 	gengetopt --input=cmdline.ggo

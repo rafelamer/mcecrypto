@@ -337,19 +337,583 @@ int main(int argc, char **argv)
 		printf("I can't read the public or private key in %s or the keytype %s is not correct\n",keyfile,ai.keytype_arg);
 		goto final;
 	}
+	/*
 
 
 
-	
-	
+
+
+
+
+
+
+		4. Encrypts a file using an RSA or ECC public key
+	*/
+	 if (ai.encrypt_flag && ai.keyfile_given) {
+		char *infile, *outfile, *keyfile;
+		int r;
+
+		if (!ai.infile_given) {
+			fprintf(stderr,
+				"You have to write the name of the input file: --infile=filename\n");
+			goto final;
+		}
+		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag ||
+			ai.sign_flag || ai.verify_flag || ai.show_flag) {
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		infile = ai.infile_arg;
+		outfile = NULL;
+		if (ai.outfile_given)
+			outfile = ai.outfile_arg;
+		keyfile = ai.keyfile_arg;
+		/*
+		  4.1 RSA public key
+		*/
+		if (memcmp(ai.keytype_arg,"rsapublic",9) == 0) {
+			r = encryptFileWithRSA(infile, &outfile, keyfile, ai.ascii_flag);
+			if (r == ENCRYPTION_RSA_OK) {
+				printf
+			    	("File encrypted successfuly. Encrypted file is %s\n",
+			     	outfile);
+				ret = EXIT_SUCCESS;
+			} else if (r == ENCRYPTION_RSA_FILE_NOT_FOUND)
+				fprintf(stderr,
+					"The file %s was not found or can not be read",
+					infile);
+			else if (r == ENCRYPTION_RSA_ERROR)
+				fprintf(stderr,
+					"Some error ocurred while encrypting the file %s\n",
+					infile);
+			else if (r == ENCRYPTION_RSA_OPEN_FILE_ERROR)
+				fprintf(stderr, "Error opening the outfile %s\n",
+					outfile);
+			else if (r == ENCRYPTION_RSA_WRITE_FILE_ERROR)
+					fprintf(stderr, "Error writing the outfile %s\n",
+						outfile);
+			else if (r == ENCRYPTION_RSA_PUBLIC_KEY_ERROR)
+				fprintf(stderr,
+					"Error opening the public key file %s\n",
+					keyfile);
+		}
+		/*
+			4.2 ECC public key
+		*/
+
+		if (memcmp(ai.keytype_arg,"eccpublic",9) == 0) {
+			EllipticCurves ecs = NULL;
+			if ((ecs = initNISTEllipticCurves()) == NULL) {
+				fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
+				goto final;
+			}
+			r = encryptFileWithECC(infile, &outfile, keyfile, ecs, ai.ascii_flag);
+			if (r == ENCRYPTION_ECC_OK) {
+				printf
+			    	("File encrypted successfuly. Encrypted file is %s\n",
+			     	outfile);
+				ret = EXIT_SUCCESS;
+			} else if (r == ENCRYPTION_ECC_FILE_NOT_FOUND)
+				fprintf(stderr,
+					"The file %s was not found or can not be read",
+					infile);
+			else if (r == ENCRYPTION_ECC_ERROR)
+				fprintf(stderr,
+					"Some error ocurred while encrypting the file %s\n",
+					infile);
+			else if (r == ENCRYPTION_ECC_OPEN_FILE_ERROR)
+				fprintf(stderr, "Error opening the outfile %s\n",
+					outfile);
+			else if (r == ENCRYPTION_ECC_WRITE_FILE_ERROR)
+					fprintf(stderr, "Error writing the outfile %s\n",
+						outfile);
+			else if (r == ENCRYPTION_ECC_PUBLIC_KEY_ERROR)
+				fprintf(stderr,
+					"Error opening the public key file %s\n",
+					keyfile);
+		}
+		if (!ai.outfile_given)
+			freeString(outfile);
+		goto final;
+	}
+	/*
+
+
+
+
+
+
+
+
+
+		5. Decrypts a file using an RSA or ECC private key
+	*/
+	if (ai.decrypt_flag && ai.keyfile_given) {
+		char *infile, *keyfile;
+		int r;
+
+		if (!ai.infile_given) {
+			fprintf(stderr,
+				"You have to write the name of the input file: --infile=filename\n");
+			goto final;
+		}
+		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag ||
+			ai.sign_flag || ai.verify_flag || ai.show_flag || ai.outfile_given) {
+			fprintf(stderr, "Wrong combination of parameters. You don't have to specify --outfile\n");
+			goto final;
+		}
+		infile = ai.infile_arg;
+		keyfile = ai.keyfile_arg;
+		/*
+		  5.1 RSA private key
+		*/
+		if (memcmp(ai.keytype_arg,"rsaprivate",10) == 0) {
+			r = decryptFileWithRSA(infile, keyfile);
+			if (r == ENCRYPTION_RSA_OK) {
+				printf ("File decrypted successfuly.\n");
+				ret = EXIT_SUCCESS;
+			} else if (r == ENCRYPTION_RSA_FILE_NOT_FOUND)
+				fprintf(stderr,
+				"The file %s was not found or can not be read",
+				infile);
+			else if (r == ENCRYPTION_RSA_ERROR)
+				fprintf(stderr,
+				"Some error ocurred while decrypting the file %s\n",
+				infile);
+			else if (r == ENCRYPTION_RSA_OPEN_FILE_ERROR)
+				fprintf(stderr, "Error opening the output file\n");
+			else if (r == ENCRYPTION_RSA_PRIVATE_KEY_ERROR)
+				fprintf(stderr,
+				"Error opening the private key file %s\n",
+				keyfile);
+
+			goto final;
+		}
+		/*
+		  5.2 ECC private key
+		*/
+		if (memcmp(ai.keytype_arg,"eccprivate",10) == 0) {
+			EllipticCurves ecs = NULL;
+			if ((ecs = initNISTEllipticCurves()) == NULL) {
+				fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
+				goto final;
+			}
+			r = decryptFileWithECC(infile, keyfile, ecs);
+			if (r == ENCRYPTION_ECC_OK) {
+				printf ("File decrypted successfuly.\n");
+				ret = EXIT_SUCCESS;
+			} else if (r == ENCRYPTION_ECC_FILE_NOT_FOUND)
+				fprintf(stderr,
+				"The file %s was not found or can not be read",
+				infile);
+			else if (r == ENCRYPTION_ECC_ERROR)
+				fprintf(stderr,
+				"Some error ocurred while decrypting the file %s\n",
+				infile);
+			else if (r == ENCRYPTION_ECC_OPEN_FILE_ERROR)
+				fprintf(stderr, "Error opening the output file\n");
+			else if (r == ENCRYPTION_RSA_PRIVATE_KEY_ERROR)
+				fprintf(stderr,
+				"Error opening the private key file %s\n",
+				keyfile);
+
+			goto final;
+		}
+	}
+	/*
+
+
+
+
+
+
+
+
+
+		6. Encrypts an unencrypted RSA private key file
+	*/
+	if (ai.encryptkey_flag && ai.keyfile_given && (memcmp(ai.keytype_arg,"rsaprivate",10) == 0)) {
+		char *infile, *outfile;
+		PrivateRSAKey rsa;
+		rsa = NULL;
+		if (!ai.outfile_given) {
+			fprintf(stderr,
+				"You have to write the name of the output file: --outfile=filename\n");
+			goto final;
+		}
+		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.show_flag ||
+			ai.decrypt_flag || ai.ascii_flag || ai.sign_flag || ai.verify_flag) {
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		infile = ai.keyfile_arg;
+		outfile = ai.outfile_arg;
+		if ((rsa = readPrivateRSAKeyFromFile(infile)) == NULL) {
+			fprintf(stderr,
+				"Error reading the unencrypted private RSA key %s\n",infile);
+			goto final;
+		}
+		if (!writeEncryptedPrivateRSAKeyToFile(outfile, rsa))
+			fprintf(stderr,
+				"Error writing the encrypted private RSA key %s\n",outfile);
+
+		freePrivateRSAKey(rsa);
+		goto final;
+	}
+	/*
+
+
+
+
+
+
+
+
+
+		7. Encrypts an unencrypted ECC private key file
+	*/
+	if (ai.encryptkey_flag && ai.keyfile_given && (memcmp(ai.keytype_arg,"eccprivate",10) == 0)) {
+		char *infile, *outfile;
+		PrivateECCKey ecc;
+		ecc = NULL;
+		if (!ai.outfile_given) {
+			fprintf(stderr,
+				"You have to write the name of the output file: --outfile=filename\n");
+			goto final;
+		}
+		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.show_flag ||
+			ai.decrypt_flag || ai.ascii_flag || ai.sign_flag || ai.verify_flag) {
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		infile = ai.keyfile_arg;
+		outfile = ai.outfile_arg;
+		EllipticCurves ecs = NULL;
+		if ((ecs = initNISTEllipticCurves()) == NULL) {
+			fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
+			goto final;
+		}
+		if ((ecc = readPrivateECCKeyFromFile(infile, ecs)) == NULL) {
+			fprintf(stderr,
+				"Error reading the unencrypted private ECC key %s\n",infile);
+			goto final;
+		}
+		if (!writeEncryptedPrivateECCKeyToFile(outfile, ecc))
+			fprintf(stderr,
+				"Error writing the encrypted private ECC key %s\n",outfile);
+
+		freePrivateECCKey(ecc);
+		goto final;
+	}
+	/*
+
+
+
+
+
+
+
+
+
+		8. Decrypts an encrypted RSA private key file
+	*/
+	if (ai.decryptkey_flag && ai.keyfile_given && (memcmp(ai.keytype_arg,"rsaprivate",10) == 0)) {
+		char *infile, *outfile;
+		PrivateRSAKey rsa;
+		rsa = NULL;
+		if (!ai.outfile_given) {
+			fprintf(stderr,
+				"You have to write the name of the output file: --outfile=filename\n");
+			goto final;
+		}
+		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.show_flag ||
+			ai.decrypt_flag || ai.ascii_flag || ai.sign_flag || ai.verify_flag) {
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		infile = ai.keyfile_arg;
+		outfile = ai.outfile_arg;
+		if ((rsa = readEncryptedPrivateRSAKeyFromFile(infile)) == NULL) {
+			fprintf(stderr,
+				"Error reading the unencrypted private RSA key %s\n",infile);
+			goto final;
+		}
+		if (!writePrivateRSAKeyToFile(outfile, rsa))
+			fprintf(stderr,
+				"Error writing the encrypted private RSA key %s\n",outfile);
+
+		freePrivateRSAKey(rsa);
+		goto final;
+	}
+	/*
+
+
+
+
+
+
+
+
+
+		9. Decrypts an encrypted ECC private key file
+	*/
+	if (ai.decryptkey_flag && ai.keyfile_given && (memcmp(ai.keytype_arg,"eccprivate",10) == 0)) {
+		char *infile, *outfile;
+		PrivateECCKey ecc;
+		ecc = NULL;
+		if (!ai.outfile_given) {
+			fprintf(stderr,
+				"You have to write the name of the output file: --outfile=filename\n");
+			goto final;
+		}
+		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.show_flag ||
+			ai.decrypt_flag || ai.ascii_flag || ai.sign_flag || ai.verify_flag) {
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		infile = ai.keyfile_arg;
+		outfile = ai.outfile_arg;
+		EllipticCurves ecs = NULL;
+		if ((ecs = initNISTEllipticCurves()) == NULL) {
+			fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
+			goto final;
+		}
+		if ((ecc = readEncryptedPrivateECCKeyFromFile(infile, ecs)) == NULL) {
+			fprintf(stderr,
+				"Error reading the encrypted private ECC key %s\n",infile);
+			goto final;
+		}
+		if (!writePrivateECCKeyToFile(outfile, ecc))
+			fprintf(stderr,
+				"Error writing the unencrypted private ECC key %s\n",outfile);
+
+		freePrivateECCKey(ecc);
+		goto final;
+	}
+	/*
+
+
+
+
+
+
+
+
+
+		10. Signs a file with a private RSA key
+	*/
+	if(ai.sign_flag && ai.infile_given && ai.keyfile_given && (memcmp(ai.keytype_arg,"rsaprivate",10) == 0)) {
+		char *infile, *outfile, *keyfile;
+		int r;
+
+		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag ||
+			ai.encrypt_flag || ai.verify_flag || ai.show_flag) {
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		infile = ai.infile_arg;
+		outfile = NULL;
+		if (ai.outfile_given)
+			outfile = ai.outfile_arg;
+		keyfile = ai.keyfile_arg;
+		r = signFileWithRSA(infile,&outfile,keyfile,ai.ascii_flag);
+		if (r == SIGNATURE_RSA_OK) {
+			printf
+			    ("File signed successfuly. Signed file is %s\n",
+			     outfile);
+			ret = EXIT_SUCCESS;
+		} else if (r == SIGNATURE_RSA_FILE_NOT_FOUND)
+			fprintf(stderr,
+				"The file %s was not found or can not be read",
+				infile);
+		else if (r == SIGNATURE_RSA_ERROR)
+			fprintf(stderr,
+				"Some error ocurred while signing the file %s\n",
+				infile);
+		else if (r == SIGNATURE_RSA_OPEN_FILE_ERROR)
+			fprintf(stderr, "Error opening the outfile %s\n",
+				outfile);
+		else if (r == ENCRYPTION_RSA_PRIVATE_KEY_ERROR)
+			fprintf(stderr, "Error reading the private key RSA file %s\n",
+				keyfile);
+
+		if (!ai.outfile_given)
+			freeString(outfile);
+		goto final;
+	}
+	/*
+
+
+
+
+
+
+
+
+
+		11. Signs a file with a private ECC key
+	*/
+	if(ai.sign_flag && ai.infile_given && ai.keyfile_given && (memcmp(ai.keytype_arg,"eccprivate",10) == 0)) {
+		char *infile, *outfile, *keyfile;
+		int r;
+
+		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag ||
+			ai.encrypt_flag || ai.verify_flag || ai.show_flag) {
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		infile = ai.infile_arg;
+		outfile = NULL;
+		if (ai.outfile_given)
+			outfile = ai.outfile_arg;
+		keyfile = ai.keyfile_arg;
+		EllipticCurves ecs = NULL;
+		if ((ecs = initNISTEllipticCurves()) == NULL) {
+			fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
+			goto final;
+		}
+		r = signFileWithECC(infile,&outfile,keyfile,ecs,ai.ascii_flag);
+		if (r == SIGNATURE_ECC_OK) {
+			printf
+			    ("File signed successfuly. Signed file is %s\n",
+			     outfile);
+			ret = EXIT_SUCCESS;
+		} else if (r == SIGNATURE_ECC_FILE_NOT_FOUND)
+			fprintf(stderr,
+				"The file %s was not found or can not be read",
+				infile);
+		else if (r == SIGNATURE_ECC_ERROR)
+			fprintf(stderr,
+				"Some error ocurred while signing the file %s\n",
+				infile);
+		else if (r == SIGNATURE_ECC_OPEN_FILE_ERROR)
+			fprintf(stderr, "Error opening the outfile %s\n",
+				outfile);
+		else if (r == ENCRYPTION_ECC_PRIVATE_KEY_ERROR)
+			fprintf(stderr, "Error reading the private ECC key file %s\n",
+				keyfile);
+
+		if (!ai.outfile_given)
+			freeString(outfile);
+		goto final;
+	}
+	/*
+
+
+
+
+
+
+
+
+
+		12. Extract and verify a signed file with RSA public key
+	*/
+	if (ai.verify_flag && ai.infile_given && ai.keyfile_given && (memcmp(ai.keytype_arg,"rsapublic",9))) {
+		char *infile, *keyfile;
+		int r;
+
+		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag ||
+			ai.encrypt_flag || ai.sign_flag || ai.ascii_flag || ai.show_flag) {
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		infile = ai.infile_arg;
+		keyfile = ai.keyfile_arg;
+		r = verifyAndExtractSignedFileWithRSA(infile, keyfile);
+		if (r == SIGNATURE_RSA_OK) {
+			printf
+			    ("File %s verified and extracted successfuly\n",infile);
+			ret = EXIT_SUCCESS;
+		}
+		else if (r == SIGNATURE_RSA_BAD)
+			fprintf(stderr,
+				"The file %s has in incorrect signature\n",
+				infile);
+		else if (r == SIGNATURE_RSA_FILE_NOT_FOUND)
+			fprintf(stderr,
+				"The file %s was not found or can not be read\n",
+				infile);
+		else if (r == SIGNATURE_RSA_ERROR)
+			fprintf(stderr,
+				"Some error ocurred while verifying the file %s\n",
+				infile);
+		else if (r == SIGNATURE_RSA_OPEN_FILE_ERROR)
+			fprintf(stderr, "Error opening the output file\n");
+		else if (r == ENCRYPTION_RSA_PUBLIC_KEY_ERROR)
+			fprintf(stderr, "Error reading the public RSA key file %s\n",
+				keyfile);
+		else if (r == ENCRYPTION_RSA_WRITE_FILE_ERROR)
+			fprintf(stderr, "Error writing the output file");
+		goto final;
+	}
 
 	/*
-	   Final of the program
-	 */
+
+
+
+
+
+
+
+
+
+		13. Extract and verify a signed file with RSA public key
+	*/
+	if (ai.verify_flag && ai.infile_given && ai.keyfile_given && (memcmp(ai.keytype_arg,"eccpublic",9))) {
+		char *infile, *keyfile;
+		int r;
+
+		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag ||
+			ai.encrypt_flag || ai.sign_flag || ai.ascii_flag || ai.show_flag) {
+			fprintf(stderr, "Wrong combination of parameters\n");
+			goto final;
+		}
+		infile = ai.infile_arg;
+		keyfile = ai.keyfile_arg;
+		EllipticCurves ecs = NULL;
+		if ((ecs = initNISTEllipticCurves()) == NULL) {
+			fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
+			goto final;
+		}
+		r = verifyAndExtractSignedFileWithECC(infile, keyfile, ecs);
+		if (r == SIGNATURE_ECC_OK) {
+			printf
+			    ("File %s verified and extracted successfuly\n",infile);
+			ret = EXIT_SUCCESS;
+		}
+		else if (r == SIGNATURE_ECC_BAD)
+			fprintf(stderr,
+				"The file %s has in incorrect signature\n",
+				infile);
+		else if (r == SIGNATURE_ECC_FILE_NOT_FOUND)
+			fprintf(stderr,
+				"The file %s was not found or can not be read\n",
+				infile);
+		else if (r == SIGNATURE_ECC_ERROR)
+			fprintf(stderr,
+				"Some error ocurred while verifying the file %s\n",
+				infile);
+		else if (r == SIGNATURE_ECC_OPEN_FILE_ERROR)
+			fprintf(stderr, "Error opening the output file\n");
+		else if (r == ENCRYPTION_ECC_PUBLIC_KEY_ERROR)
+			fprintf(stderr, "Error reading the public ECC key file %s\n",
+				keyfile);
+		else if (r == ENCRYPTION_ECC_WRITE_FILE_ERROR)
+			fprintf(stderr, "Error writing the output file");
+		goto final;
+	}
+
+
+	/*
+	  If any option is processed, the help is shon
+	*/
 	printf("%s\n", gengetopt_args_info_usage);
 	printf("%s\n", *gengetopt_args_info_help);
 	ret = EXIT_SUCCESS;
-
+/*
+	Final of the program
+*/
  final:
 	cmdline_parser_free(&ai);
 	return ret;
