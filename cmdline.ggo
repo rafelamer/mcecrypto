@@ -1,5 +1,5 @@
 package "mcecrypto"
-version "1.0"
+version "2.0"
 purpose "Encryption of files by the symmetric AES
 algorithm, by the public key algorithms RSA and ECC
 and the generation of RSA and ECC keys

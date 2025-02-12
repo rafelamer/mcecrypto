@@ -1,7 +1,7 @@
 /**************************************************************************************
  * Filename:   encryption.c
  * Author:     Rafel Amer (rafel.amer AT upc.edu)
- * Copyright:  Rafel Amer 2018-2023
+ * Copyright:  Rafel Amer 2018-2025
  * Disclaimer: This code is presented "as is" and it has been written to 
  *             implement the RSA and ECC encryption and decryption algorithm for 
  *             educational purposes and should not be used in contexts that 
@@ -95,7 +95,7 @@ int encryptFileWithRSA(char *infile, char **outfile, char *keyfile, int ascii)
 	if (! stWriteOctetString(st,text,nbytes))
 		goto final;
 	freeString(text);
-	if (! stWriteOctetString(st,(unsigned char *)(*outfile),strlen(*outfile)))
+	if (! stWriteOctetString(st,(unsigned char *)(infile),strlen(infile)))
 		goto final;
 
 	/*
@@ -282,11 +282,6 @@ int decryptFileWithRSA(char *infile, char *keyfile)
 	stSetDataInStack(st, text, length, length);
 	text = NULL;
 
-	if ((text = zlib_uncompress_data(st->data, st->used, &nbytes, &length)) == NULL)
-		goto final;	
-	stSetDataInStack(st, text, nbytes, length);
-	text = NULL;
-
 	int fd;
 	if ((fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR)) < 0)
 	{
@@ -300,6 +295,7 @@ int decryptFileWithRSA(char *infile, char *keyfile)
 		goto final;
 	}
 	
+	printf("Writing file %s\n",filename);
 	close(fd);
 	ret = ENCRYPTION_RSA_OK;
 	

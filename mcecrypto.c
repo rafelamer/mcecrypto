@@ -520,6 +520,7 @@ int main(int argc, char **argv)
 		if (!writeEncryptedPrivateRSAKeyToFile(outfile, rsa))
 			fprintf(stderr,"Error writing the encrypted private RSA key %s\n",outfile);
 		freePrivateRSAKey(rsa);
+		printf("Saved the encrypted private RSA key to %s\n", outfile);
 		goto final;
 	}
 	/*
@@ -561,6 +562,7 @@ int main(int argc, char **argv)
 		if (!writeEncryptedPrivateECCKeyToFile(outfile, ecc))
 			fprintf(stderr,"Error writing the encrypted private ECC key %s\n",outfile);
 		freePrivateECCKey(ecc);
+		printf("Saved the encrypted private ECC key to %s\n", outfile);
 		goto final;
 	}
 	/*
@@ -597,6 +599,7 @@ int main(int argc, char **argv)
 		if (!writePrivateRSAKeyToFile(outfile, rsa))
 			fprintf(stderr,"Error writing the encrypted private RSA key %s\n",outfile);
 		freePrivateRSAKey(rsa);
+		printf("Saved the unencrypted private RSA key to %s\n", outfile);
 		goto final;
 	}
 	/*
@@ -639,6 +642,7 @@ int main(int argc, char **argv)
 			fprintf(stderr,"Error writing the unencrypted private ECC key %s\n",outfile);
 
 		freePrivateECCKey(ecc);
+		printf("Saved the unencrypted private ECC key to %s\n", outfile);
 		goto final;
 	}
 	/*
@@ -672,7 +676,7 @@ int main(int argc, char **argv)
 			printf("File signed successfuly. Signed file is %s\n",outfile);
 			ret = EXIT_SUCCESS;
 		} else if (r == SIGNATURE_RSA_FILE_NOT_FOUND)
-			fprintf(stderr,"The file %s was not found or can not be read",infile);
+			fprintf(stderr,"The file %s was not found or can not be read\n",infile);
 		else if (r == SIGNATURE_RSA_ERROR)
 			fprintf(stderr,"Some error ocurred while signing the file %s\n",infile);
 		else if (r == SIGNATURE_RSA_OPEN_FILE_ERROR)
@@ -744,7 +748,7 @@ int main(int argc, char **argv)
 
 		12. Extract and verify a signed file with RSA public key
 	*/
-	if (ai.verify_flag && ai.infile_given && ai.keyfile_given && (memcmp(ai.keytype_arg,"rsapublic",9))) {
+	if (ai.verify_flag && ai.infile_given && ai.keyfile_given && (memcmp(ai.keytype_arg,"rsapublic",9) == 0)) {
 		char *infile, *keyfile;
 		int r;
 
@@ -765,7 +769,7 @@ int main(int argc, char **argv)
 		else if (r == SIGNATURE_RSA_FILE_NOT_FOUND)
 			fprintf(stderr,"The file %s was not found or can not be read\n",infile);
 		else if (r == SIGNATURE_RSA_ERROR)
-			fprintf(stderr,"Some error ocurred while verifying the file %s\n",infile);
+			fprintf(stderr,"Some error ocurred while extranting abd verifying the file %s, signed with RSA\n",infile);
 		else if (r == SIGNATURE_RSA_OPEN_FILE_ERROR)
 			fprintf(stderr, "Error opening the output file\n");
 		else if (r == ENCRYPTION_RSA_PUBLIC_KEY_ERROR)
@@ -787,7 +791,7 @@ int main(int argc, char **argv)
 
 		13. Extract and verify a signed file with RSA public key
 	*/
-	if (ai.verify_flag && ai.infile_given && ai.keyfile_given && (memcmp(ai.keytype_arg,"eccpublic",9))) {
+	if (ai.verify_flag && ai.infile_given && ai.keyfile_given && (memcmp(ai.keytype_arg,"eccpublic",9) == 0)) {
 		char *infile, *keyfile;
 		int r;
 
@@ -813,7 +817,7 @@ int main(int argc, char **argv)
 		else if (r == SIGNATURE_ECC_FILE_NOT_FOUND)
 			fprintf(stderr,"The file %s was not found or can not be read\n",infile);
 		else if (r == SIGNATURE_ECC_ERROR)
-			fprintf(stderr,"Some error ocurred while verifying the file %s\n",infile);
+			fprintf(stderr,"Some error ocurred while ppp verifying the file %s\n",infile);
 		else if (r == SIGNATURE_ECC_OPEN_FILE_ERROR)
 			fprintf(stderr, "Error opening the output file\n");
 		else if (r == ENCRYPTION_ECC_PUBLIC_KEY_ERROR)

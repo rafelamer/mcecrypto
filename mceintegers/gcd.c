@@ -1,7 +1,7 @@
 /**************************************************************************************
 * Filename:   gcd.c
 * Author:     Rafel Amer (rafel.amer AT upc.edu)
-* Copyright:  Rafel Amer 2018-2023
+* Copyright:  Rafel Amer 2018-2025
 * Disclaimer: This code is presented "as is" and it has been written to 
 *             implement the RSA encryption and decryption algorithm for 
 *             educational purposes and should not be used in contexts that 

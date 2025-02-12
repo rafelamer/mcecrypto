@@ -1,7 +1,7 @@
 /**************************************************************************************
 * Filename:   signature.c
 * Author:     Rafel Amer (rafel.amer AT upc.edu)
-* Copyright:  Rafel Amer 2018-2023
+* Copyright:  Rafel Amer 2018-2025
 * Disclaimer: This code is presented "as is" and it has been written to 
 *             implement the RSA and ECC encryption and decryption algorithm for 
 *             educational purposes and should not be used in contexts that 
@@ -43,7 +43,7 @@ static const unsigned char eecsigf[] = "-----END EC SIGNED FILE-----";
 
 int signStackECC(Stack st, PrivateECCKey key, const char *filename, uint8_t mode)
 {
-    size_t ndigits, nbytes, nbits, alloc;
+    size_t ndigits, nbytes, nbits, alloc, usize;
 	unsigned char *text;
 	unsigned char digest512[SHA512_DIGEST_SIZE];
     unsigned char digest256[SHA256_DIGEST_SIZE];
@@ -59,6 +59,7 @@ int signStackECC(Stack st, PrivateECCKey key, const char *filename, uint8_t mode
 	text = NULL;
 	if ((st == NULL) || (st->data == NULL) || (st->used == 0))
 		goto final;
+	usize = st->used;
 
 	if (mode & STACKCOMPRESS)
 	{
@@ -162,9 +163,14 @@ int signStackECC(Stack st, PrivateECCKey key, const char *filename, uint8_t mode
     */   
     if (! stWriteBigInteger(st, x))
 		goto final;
+
     if (! stWriteBigInteger(st, R->x))
 		goto final;
-    if (! stWriteStartSequence(st))
+	
+	if (! stWriteDigit(st, usize))
+		goto final;
+
+	if (! stWriteStartSequence(st))
 		goto final;
 
     if (mode & STACKENCODE)
@@ -292,7 +298,7 @@ final:
 
 int verifyAndExtractStackECC(Stack st, PublicECCKey key, uint8_t mode)
 {
-    size_t nbytes, length, nbits;
+    size_t nbytes, length, nbits, usize;
     unsigned char *text, *t;
 	char *filename;
 	int ret, error;
@@ -326,6 +332,9 @@ int verifyAndExtractStackECC(Stack st, PublicECCKey key, uint8_t mode)
 	if ((length == 0) || (error != 0))
 		goto final;
 	if (length != stBytesRemaining(st))
+		goto final;
+	usize = stReadDigit(st,&error);
+	if (error != 0)
 		goto final;
     if (((r = stReadBigInteger(st, &error)) == NULL) || (error != 0))
 		goto final;
@@ -377,9 +386,9 @@ int verifyAndExtractStackECC(Stack st, PublicECCKey key, uint8_t mode)
 
 	if (mode & STACKCOMPRESS)
 	{
-		if ((text = zlib_uncompress_data(st->data, st->used, &nbytes, &length)) == NULL)
+		if ((text = zlib_uncompress_data(st->data, st->used, usize)) == NULL)
 			goto final;	
-		stSetDataInStack(st, text, nbytes, length);
+		stSetDataInStack(st, text, usize, usize);
 		text = NULL;
 	}
 

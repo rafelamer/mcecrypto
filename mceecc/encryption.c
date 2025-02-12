@@ -1,7 +1,7 @@
 /**************************************************************************************
  * Filename:   encryption.c
  * Author:     Rafel Amer (rafel.amer AT upc.edu)
- * Copyright:  Rafel Amer 2018-2023
+ * Copyright:  Rafel Amer 2018-2025
  * Disclaimer: This code is presented "as is" and it has been written to 
  *             implement the RSA and ECC encryption and decryption algorithm for 
  *             educational purposes and should not be used in contexts that 
@@ -286,6 +286,7 @@ int decryptFileWithECC(char *infile, char *keyfile, EllipticCurves ecs)
 		goto final;    
 	if (length != stBytesRemaining(st))
 		goto final;
+
     if (((x = stReadBigInteger(st, &error)) == NULL) || (error != 0))
 		goto final;
     if (((y = stReadBigInteger(st, &error)) == NULL) || (error != 0))
@@ -343,7 +344,8 @@ int decryptFileWithECC(char *infile, char *keyfile, EllipticCurves ecs)
 		ret = ENCRYPTION_ECC_WRITE_FILE_ERROR;
 		goto final;
 	}
-
+	close(fd);
+	printf("Writing file %s\n",filename);
     ret = ENCRYPTION_ECC_OK;
 
 final:

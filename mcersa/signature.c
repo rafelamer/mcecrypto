@@ -1,7 +1,7 @@
 /**************************************************************************************
  * Filename:   signature.c
  * Author:     Rafel Amer (rafel.amer AT upc.edu)
- * Copyright:  Rafel Amer 2018-2023
+ * Copyright:  Rafel Amer 2018-2025
  * Disclaimer: This code is presented "as is" and it has been written to 
  *             implement the RSA and ECC encryption and decryption algorithm for 
  *             educational purposes and should not be used in contexts that 
@@ -41,7 +41,7 @@ static const unsigned char esigf[] = "-----END RSA SIGNED FILE-----";
 
 int signStackRSA(Stack st, PrivateRSAKey rsa, const char *filename, uint8_t mode)
 {
-	size_t ndigits, nbytes, alloc;
+	size_t ndigits, nbytes, alloc, usize;
 	unsigned char *text;
 	unsigned char digest[SHA512_DIGEST_SIZE];
 	int ret;
@@ -52,7 +52,7 @@ int signStackRSA(Stack st, PrivateRSAKey rsa, const char *filename, uint8_t mode
 	text = NULL;
 	if ((st == NULL) || (st->data == NULL) || (st->used == 0))
 		goto final;
-
+	usize = st->used;
 	if (mode & STACKCOMPRESS)
 	{
 		if ((text = zlib_compress_data(st->data,st->used,&nbytes,&alloc)) == NULL)
@@ -61,7 +61,6 @@ int signStackRSA(Stack st, PrivateRSAKey rsa, const char *filename, uint8_t mode
 		text = NULL;
 	}
 	nbytes = st->used;
-
 	/*
 		Compute SHA512
 	*/
@@ -79,6 +78,7 @@ int signStackRSA(Stack st, PrivateRSAKey rsa, const char *filename, uint8_t mode
 	*/
 	if (! stReInitStackWithSize(st, nbytes + 1024))
 		goto final;
+
 	if (! stWriteOctetString(st,text,nbytes))
 		goto final;
 	freeString(text);
@@ -99,6 +99,9 @@ int signStackRSA(Stack st, PrivateRSAKey rsa, const char *filename, uint8_t mode
 	freeBigInteger(m);
 
 	if (! stWriteBigInteger(st, c))
+		goto final;
+
+	if (! stWriteDigit(st, usize))
 		goto final;
 
 	if (! stWriteStartSequence(st))
@@ -123,7 +126,7 @@ final:
 
 int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 {
-	size_t nbytes, length;
+	size_t nbytes, length, usize;
 	unsigned char *text, *s;
 	char *filename;
 	unsigned char digest[2 * SHA512_DIGEST_SIZE];
@@ -153,7 +156,9 @@ int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 		goto final;
 	if (length != stBytesRemaining(st))
 		goto final;
-
+	usize = stReadDigit(st,&error);
+	if (error != 0)
+		goto final;
 	if (((c = stReadBigInteger(st, &error)) == NULL) || (error != 0))
 		goto final;
 	if ((m = publicDecryptOAEPRSA(rsa, c)) == NULL) {
@@ -194,9 +199,9 @@ int verifyAndExtractStackRSA(Stack st,PublicRSAKey rsa,uint8_t mode)
 
 	if (mode & STACKCOMPRESS)
 	{
-		if ((text = zlib_uncompress_data(st->data, st->used, &nbytes, &length)) == NULL)
+		if ((text = zlib_uncompress_data(st->data, st->used, usize)) == NULL)
 			goto final;	
-		stSetDataInStack(st, text, nbytes, length);
+		stSetDataInStack(st, text, usize, usize);
 		text = NULL;
 	}
 
@@ -343,7 +348,6 @@ int verifyAndExtractSignedFileWithRSA(char *infile,char *keyfile)
 	st = NULL;
 	rsa = NULL;
 	ret = SIGNATURE_RSA_ERROR;
-	
 	/*
 		Read the public key file
 	 */
