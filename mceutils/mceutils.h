@@ -49,6 +49,7 @@
 #define ENCRYPTION_AES_HMAC_ERROR -5
 #define ENCRYPTION_AES_OPEN_FILE_ERROR -6
 #define ENCRYPTION_AES_PASSWORD_SHORT -7
+#define ZLIB_UNCOMPRESS_ERROR -15
 #define KDFLENKEYS 96
 #define SALTLEN 48
 #define KDFHMACSHA256 1
@@ -76,8 +77,10 @@ void stFreeStack(Stack * st);
 int stReInitStackWithSize(Stack st, size_t size);
 int stExpandStackInSize(Stack st, size_t size);
 void stSetDataInStack(Stack st, unsigned char *data, size_t nbytes, size_t alloc);
+int stCopyDataFromStack(Stack st,Stack orig);
 size_t stReadLength(Stack st, int *error);
 size_t stBytesRemaining(Stack st);
+int stStacksAreEqual(Stack st1, Stack st2);
 DIGIT stReadDigit(Stack st, int *error);
 unsigned char *stReadOctetString(Stack st, size_t * length, int *error);
 unsigned char *stReadBitString(Stack st, size_t * length, int *error);
@@ -112,7 +115,7 @@ int writeFileBinaryMode(const char *filename, unsigned char *data,size_t length)
   Compress and uncompress with zlib
 */
 unsigned char *zlib_compress_data(unsigned char *data, size_t insize, size_t * outsize, size_t * alloc);
-unsigned char *zlib_uncompress_data(unsigned char *data, size_t insize, size_t * outsize, size_t * alloc);
+unsigned char *zlib_uncompress_data(unsigned char *data, size_t insize, size_t outsize);
 
 /*
   Text to SHA256 or SHA512

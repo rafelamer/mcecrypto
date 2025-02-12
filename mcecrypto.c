@@ -175,6 +175,8 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Error opening or writing the outfile %s\n",outfile);
 		else if (r == ENCRYPTION_AES_PASSWORD_SHORT)
 			fprintf(stderr,"Passphrase too short. It must be at least 10 characters long\n");
+		else if (r == ZLIB_UNCOMPRESS_ERROR)
+			fprintf(stderr,"Passphrase too short. It must be at least 10 characters long\n");
 
 		if (!ai.outfile_given)
 			freeString(outfile);
@@ -354,8 +356,7 @@ int main(int argc, char **argv)
 		int r;
 
 		if (!ai.infile_given) {
-			fprintf(stderr,
-				"You have to write the name of the input file: --infile=filename\n");
+			fprintf(stderr,"You have to write the name of the input file: --infile=filename\n");
 			goto final;
 		}
 		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag ||
@@ -374,28 +375,18 @@ int main(int argc, char **argv)
 		if (memcmp(ai.keytype_arg,"rsapublic",9) == 0) {
 			r = encryptFileWithRSA(infile, &outfile, keyfile, ai.ascii_flag);
 			if (r == ENCRYPTION_RSA_OK) {
-				printf
-			    	("File encrypted successfuly. Encrypted file is %s\n",
-			     	outfile);
+				printf("File encrypted successfuly. Encrypted file is %s\n",outfile);
 				ret = EXIT_SUCCESS;
 			} else if (r == ENCRYPTION_RSA_FILE_NOT_FOUND)
-				fprintf(stderr,
-					"The file %s was not found or can not be read",
-					infile);
+				fprintf(stderr,"The file %s was not found or can not be read",infile);
 			else if (r == ENCRYPTION_RSA_ERROR)
-				fprintf(stderr,
-					"Some error ocurred while encrypting the file %s\n",
-					infile);
+				fprintf(stderr,"Some error ocurred while encrypting the file %s\n",infile);
 			else if (r == ENCRYPTION_RSA_OPEN_FILE_ERROR)
-				fprintf(stderr, "Error opening the outfile %s\n",
-					outfile);
+				fprintf(stderr, "Error opening the outfile %s\n",outfile);
 			else if (r == ENCRYPTION_RSA_WRITE_FILE_ERROR)
-					fprintf(stderr, "Error writing the outfile %s\n",
-						outfile);
+					fprintf(stderr, "Error writing the outfile %s\n",outfile);
 			else if (r == ENCRYPTION_RSA_PUBLIC_KEY_ERROR)
-				fprintf(stderr,
-					"Error opening the public key file %s\n",
-					keyfile);
+				fprintf(stderr,"Error opening the public key file %s\n",keyfile);
 		}
 		/*
 			4.2 ECC public key
@@ -409,28 +400,18 @@ int main(int argc, char **argv)
 			}
 			r = encryptFileWithECC(infile, &outfile, keyfile, ecs, ai.ascii_flag);
 			if (r == ENCRYPTION_ECC_OK) {
-				printf
-			    	("File encrypted successfuly. Encrypted file is %s\n",
-			     	outfile);
+				printf("File encrypted successfuly. Encrypted file is %s\n",outfile);
 				ret = EXIT_SUCCESS;
 			} else if (r == ENCRYPTION_ECC_FILE_NOT_FOUND)
-				fprintf(stderr,
-					"The file %s was not found or can not be read",
-					infile);
+				fprintf(stderr,"The file %s was not found or can not be read",infile);
 			else if (r == ENCRYPTION_ECC_ERROR)
-				fprintf(stderr,
-					"Some error ocurred while encrypting the file %s\n",
-					infile);
+				fprintf(stderr,"Some error ocurred while encrypting the file %s\n",infile);
 			else if (r == ENCRYPTION_ECC_OPEN_FILE_ERROR)
-				fprintf(stderr, "Error opening the outfile %s\n",
-					outfile);
+				fprintf(stderr, "Error opening the outfile %s\n",outfile);
 			else if (r == ENCRYPTION_ECC_WRITE_FILE_ERROR)
-					fprintf(stderr, "Error writing the outfile %s\n",
-						outfile);
+				fprintf(stderr, "Error writing the outfile %s\n",outfile);
 			else if (r == ENCRYPTION_ECC_PUBLIC_KEY_ERROR)
-				fprintf(stderr,
-					"Error opening the public key file %s\n",
-					keyfile);
+				fprintf(stderr,"Error opening the public key file %s\n",keyfile);
 		}
 		if (!ai.outfile_given)
 			freeString(outfile);
@@ -453,8 +434,7 @@ int main(int argc, char **argv)
 		int r;
 
 		if (!ai.infile_given) {
-			fprintf(stderr,
-				"You have to write the name of the input file: --infile=filename\n");
+			fprintf(stderr,"You have to write the name of the input file: --infile=filename\n");
 			goto final;
 		}
 		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag ||
@@ -473,20 +453,13 @@ int main(int argc, char **argv)
 				printf ("File decrypted successfuly.\n");
 				ret = EXIT_SUCCESS;
 			} else if (r == ENCRYPTION_RSA_FILE_NOT_FOUND)
-				fprintf(stderr,
-				"The file %s was not found or can not be read",
-				infile);
+				fprintf(stderr,"The file %s was not found or can not be read",infile);
 			else if (r == ENCRYPTION_RSA_ERROR)
-				fprintf(stderr,
-				"Some error ocurred while decrypting the file %s\n",
-				infile);
+				fprintf(stderr,"Some error ocurred while decrypting the file %s\n",infile);
 			else if (r == ENCRYPTION_RSA_OPEN_FILE_ERROR)
 				fprintf(stderr, "Error opening the output file\n");
 			else if (r == ENCRYPTION_RSA_PRIVATE_KEY_ERROR)
-				fprintf(stderr,
-				"Error opening the private key file %s\n",
-				keyfile);
-
+				fprintf(stderr,"Error opening the private key file %s\n",keyfile);
 			goto final;
 		}
 		/*
@@ -503,20 +476,13 @@ int main(int argc, char **argv)
 				printf ("File decrypted successfuly.\n");
 				ret = EXIT_SUCCESS;
 			} else if (r == ENCRYPTION_ECC_FILE_NOT_FOUND)
-				fprintf(stderr,
-				"The file %s was not found or can not be read",
-				infile);
+				fprintf(stderr,"The file %s was not found or can not be read",infile);
 			else if (r == ENCRYPTION_ECC_ERROR)
-				fprintf(stderr,
-				"Some error ocurred while decrypting the file %s\n",
-				infile);
+				fprintf(stderr,"Some error ocurred while decrypting the file %s\n",infile);
 			else if (r == ENCRYPTION_ECC_OPEN_FILE_ERROR)
 				fprintf(stderr, "Error opening the output file\n");
 			else if (r == ENCRYPTION_RSA_PRIVATE_KEY_ERROR)
-				fprintf(stderr,
-				"Error opening the private key file %s\n",
-				keyfile);
-
+				fprintf(stderr,"Error opening the private key file %s\n",keyfile);
 			goto final;
 		}
 	}
@@ -537,8 +503,7 @@ int main(int argc, char **argv)
 		PrivateRSAKey rsa;
 		rsa = NULL;
 		if (!ai.outfile_given) {
-			fprintf(stderr,
-				"You have to write the name of the output file: --outfile=filename\n");
+			fprintf(stderr,"You have to write the name of the output file: --outfile=filename\n");
 			goto final;
 		}
 		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.show_flag ||
@@ -549,14 +514,11 @@ int main(int argc, char **argv)
 		infile = ai.keyfile_arg;
 		outfile = ai.outfile_arg;
 		if ((rsa = readPrivateRSAKeyFromFile(infile)) == NULL) {
-			fprintf(stderr,
-				"Error reading the unencrypted private RSA key %s\n",infile);
+			fprintf(stderr,"Error reading the unencrypted private RSA key %s\n",infile);
 			goto final;
 		}
 		if (!writeEncryptedPrivateRSAKeyToFile(outfile, rsa))
-			fprintf(stderr,
-				"Error writing the encrypted private RSA key %s\n",outfile);
-
+			fprintf(stderr,"Error writing the encrypted private RSA key %s\n",outfile);
 		freePrivateRSAKey(rsa);
 		goto final;
 	}
@@ -577,8 +539,7 @@ int main(int argc, char **argv)
 		PrivateECCKey ecc;
 		ecc = NULL;
 		if (!ai.outfile_given) {
-			fprintf(stderr,
-				"You have to write the name of the output file: --outfile=filename\n");
+			fprintf(stderr,"You have to write the name of the output file: --outfile=filename\n");
 			goto final;
 		}
 		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.show_flag ||
@@ -594,14 +555,11 @@ int main(int argc, char **argv)
 			goto final;
 		}
 		if ((ecc = readPrivateECCKeyFromFile(infile, ecs)) == NULL) {
-			fprintf(stderr,
-				"Error reading the unencrypted private ECC key %s\n",infile);
+			fprintf(stderr,"Error reading the unencrypted private ECC key %s\n",infile);
 			goto final;
 		}
 		if (!writeEncryptedPrivateECCKeyToFile(outfile, ecc))
-			fprintf(stderr,
-				"Error writing the encrypted private ECC key %s\n",outfile);
-
+			fprintf(stderr,"Error writing the encrypted private ECC key %s\n",outfile);
 		freePrivateECCKey(ecc);
 		goto final;
 	}
@@ -622,8 +580,7 @@ int main(int argc, char **argv)
 		PrivateRSAKey rsa;
 		rsa = NULL;
 		if (!ai.outfile_given) {
-			fprintf(stderr,
-				"You have to write the name of the output file: --outfile=filename\n");
+			fprintf(stderr,"You have to write the name of the output file: --outfile=filename\n");
 			goto final;
 		}
 		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.show_flag ||
@@ -634,14 +591,11 @@ int main(int argc, char **argv)
 		infile = ai.keyfile_arg;
 		outfile = ai.outfile_arg;
 		if ((rsa = readEncryptedPrivateRSAKeyFromFile(infile)) == NULL) {
-			fprintf(stderr,
-				"Error reading the unencrypted private RSA key %s\n",infile);
+			fprintf(stderr,"Error reading the unencrypted private RSA key %s\n",infile);
 			goto final;
 		}
 		if (!writePrivateRSAKeyToFile(outfile, rsa))
-			fprintf(stderr,
-				"Error writing the encrypted private RSA key %s\n",outfile);
-
+			fprintf(stderr,"Error writing the encrypted private RSA key %s\n",outfile);
 		freePrivateRSAKey(rsa);
 		goto final;
 	}
@@ -662,8 +616,7 @@ int main(int argc, char **argv)
 		PrivateECCKey ecc;
 		ecc = NULL;
 		if (!ai.outfile_given) {
-			fprintf(stderr,
-				"You have to write the name of the output file: --outfile=filename\n");
+			fprintf(stderr,"You have to write the name of the output file: --outfile=filename\n");
 			goto final;
 		}
 		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.show_flag ||
@@ -679,13 +632,11 @@ int main(int argc, char **argv)
 			goto final;
 		}
 		if ((ecc = readEncryptedPrivateECCKeyFromFile(infile, ecs)) == NULL) {
-			fprintf(stderr,
-				"Error reading the encrypted private ECC key %s\n",infile);
+			fprintf(stderr,"Error reading the encrypted private ECC key %s\n",infile);
 			goto final;
 		}
 		if (!writePrivateECCKeyToFile(outfile, ecc))
-			fprintf(stderr,
-				"Error writing the unencrypted private ECC key %s\n",outfile);
+			fprintf(stderr,"Error writing the unencrypted private ECC key %s\n",outfile);
 
 		freePrivateECCKey(ecc);
 		goto final;
@@ -718,24 +669,16 @@ int main(int argc, char **argv)
 		keyfile = ai.keyfile_arg;
 		r = signFileWithRSA(infile,&outfile,keyfile,ai.ascii_flag);
 		if (r == SIGNATURE_RSA_OK) {
-			printf
-			    ("File signed successfuly. Signed file is %s\n",
-			     outfile);
+			printf("File signed successfuly. Signed file is %s\n",outfile);
 			ret = EXIT_SUCCESS;
 		} else if (r == SIGNATURE_RSA_FILE_NOT_FOUND)
-			fprintf(stderr,
-				"The file %s was not found or can not be read",
-				infile);
+			fprintf(stderr,"The file %s was not found or can not be read",infile);
 		else if (r == SIGNATURE_RSA_ERROR)
-			fprintf(stderr,
-				"Some error ocurred while signing the file %s\n",
-				infile);
+			fprintf(stderr,"Some error ocurred while signing the file %s\n",infile);
 		else if (r == SIGNATURE_RSA_OPEN_FILE_ERROR)
-			fprintf(stderr, "Error opening the outfile %s\n",
-				outfile);
+			fprintf(stderr, "Error opening the outfile %s\n",outfile);
 		else if (r == ENCRYPTION_RSA_PRIVATE_KEY_ERROR)
-			fprintf(stderr, "Error reading the private key RSA file %s\n",
-				keyfile);
+			fprintf(stderr, "Error reading the private key RSA file %s\n",keyfile);
 
 		if (!ai.outfile_given)
 			freeString(outfile);
@@ -774,24 +717,16 @@ int main(int argc, char **argv)
 		}
 		r = signFileWithECC(infile,&outfile,keyfile,ecs,ai.ascii_flag);
 		if (r == SIGNATURE_ECC_OK) {
-			printf
-			    ("File signed successfuly. Signed file is %s\n",
-			     outfile);
+			printf("File signed successfuly. Signed file is %s\n",outfile);
 			ret = EXIT_SUCCESS;
 		} else if (r == SIGNATURE_ECC_FILE_NOT_FOUND)
-			fprintf(stderr,
-				"The file %s was not found or can not be read",
-				infile);
+			fprintf(stderr,"The file %s was not found or can not be read",infile);
 		else if (r == SIGNATURE_ECC_ERROR)
-			fprintf(stderr,
-				"Some error ocurred while signing the file %s\n",
-				infile);
+			fprintf(stderr,"Some error ocurred while signing the file %s\n",infile);
 		else if (r == SIGNATURE_ECC_OPEN_FILE_ERROR)
-			fprintf(stderr, "Error opening the outfile %s\n",
-				outfile);
+			fprintf(stderr, "Error opening the outfile %s\n",outfile);
 		else if (r == ENCRYPTION_ECC_PRIVATE_KEY_ERROR)
-			fprintf(stderr, "Error reading the private ECC key file %s\n",
-				keyfile);
+			fprintf(stderr, "Error reading the private ECC key file %s\n",keyfile);
 
 		if (!ai.outfile_given)
 			freeString(outfile);
@@ -822,27 +757,19 @@ int main(int argc, char **argv)
 		keyfile = ai.keyfile_arg;
 		r = verifyAndExtractSignedFileWithRSA(infile, keyfile);
 		if (r == SIGNATURE_RSA_OK) {
-			printf
-			    ("File %s verified and extracted successfuly\n",infile);
+			printf("File %s verified and extracted successfuly\n",infile);
 			ret = EXIT_SUCCESS;
 		}
 		else if (r == SIGNATURE_RSA_BAD)
-			fprintf(stderr,
-				"The file %s has in incorrect signature\n",
-				infile);
+			fprintf(stderr,"The file %s has in incorrect signature\n",infile);
 		else if (r == SIGNATURE_RSA_FILE_NOT_FOUND)
-			fprintf(stderr,
-				"The file %s was not found or can not be read\n",
-				infile);
+			fprintf(stderr,"The file %s was not found or can not be read\n",infile);
 		else if (r == SIGNATURE_RSA_ERROR)
-			fprintf(stderr,
-				"Some error ocurred while verifying the file %s\n",
-				infile);
+			fprintf(stderr,"Some error ocurred while verifying the file %s\n",infile);
 		else if (r == SIGNATURE_RSA_OPEN_FILE_ERROR)
 			fprintf(stderr, "Error opening the output file\n");
 		else if (r == ENCRYPTION_RSA_PUBLIC_KEY_ERROR)
-			fprintf(stderr, "Error reading the public RSA key file %s\n",
-				keyfile);
+			fprintf(stderr, "Error reading the public RSA key file %s\n",keyfile);
 		else if (r == ENCRYPTION_RSA_WRITE_FILE_ERROR)
 			fprintf(stderr, "Error writing the output file");
 		goto final;
@@ -878,27 +805,19 @@ int main(int argc, char **argv)
 		}
 		r = verifyAndExtractSignedFileWithECC(infile, keyfile, ecs);
 		if (r == SIGNATURE_ECC_OK) {
-			printf
-			    ("File %s verified and extracted successfuly\n",infile);
+			printf("File %s verified and extracted successfuly\n",infile);
 			ret = EXIT_SUCCESS;
 		}
 		else if (r == SIGNATURE_ECC_BAD)
-			fprintf(stderr,
-				"The file %s has in incorrect signature\n",
-				infile);
+			fprintf(stderr,"The file %s has in incorrect signature\n",infile);
 		else if (r == SIGNATURE_ECC_FILE_NOT_FOUND)
-			fprintf(stderr,
-				"The file %s was not found or can not be read\n",
-				infile);
+			fprintf(stderr,"The file %s was not found or can not be read\n",infile);
 		else if (r == SIGNATURE_ECC_ERROR)
-			fprintf(stderr,
-				"Some error ocurred while verifying the file %s\n",
-				infile);
+			fprintf(stderr,"Some error ocurred while verifying the file %s\n",infile);
 		else if (r == SIGNATURE_ECC_OPEN_FILE_ERROR)
 			fprintf(stderr, "Error opening the output file\n");
 		else if (r == ENCRYPTION_ECC_PUBLIC_KEY_ERROR)
-			fprintf(stderr, "Error reading the public ECC key file %s\n",
-				keyfile);
+			fprintf(stderr, "Error reading the public ECC key file %s\n",keyfile);
 		else if (r == ENCRYPTION_ECC_WRITE_FILE_ERROR)
 			fprintf(stderr, "Error writing the output file");
 		goto final;

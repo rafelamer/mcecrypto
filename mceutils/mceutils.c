@@ -189,9 +189,26 @@ void stSetDataInStack(Stack st, unsigned char *data, size_t nbytes, size_t alloc
 	st->alloc = alloc;
 }
 
+int stCopyDataFromStack(Stack st,Stack orig)
+{
+	if (st->alloc < orig->used)
+		if (!stExpandStackInSize(st, orig->used))
+			return 0;
+	memcpy(st->data,orig->data,orig->used);
+	st->used = orig->used;
+	return 1;
+}
+
 size_t stBytesRemaining(Stack st)
 {
 	return (st->used - (st->read - st->data));
+}
+
+int stStacksAreEqual(Stack st1, Stack st2) 
+{
+	if (st1->used != st2->used)
+		return 0;
+	return ! memcmp(st1->data,st2->data,st1->used);
 }
 
 size_t stReadLength(Stack st, int *error)
@@ -739,143 +756,54 @@ int writeFileBinaryMode(const char *filename, unsigned char *data, size_t length
 }
 
 /*
-	Compress and uncompress with zlib
-*/
-
-#define ZLIBCHUNK 16384
-
-#define CALL_ZLIB_DEFLATE(x)  unsigned char out[ZLIBCHUNK];							          \
-	st.avail_in = (x) * sizeof(unsigned char);												  \
-	st.next_in = (Bytef *)p;																  \
-	insize -= (x);																			  \
-	flush = (insize == 0) ? Z_FINISH : Z_NO_FLUSH;											  \
-	do																						  \
-	{																						  \
-		size_t have;																		  \
-		st.avail_out = ZLIBCHUNK;															  \
-		st.next_out = (Bytef *)out;															  \
-		ret = deflate(&st,flush);															  \
-		if ((ret != Z_OK) && (ret != Z_STREAM_END))											  \
-		{																					  \
-			deflateEnd(&st);																  \
-			free(str);																		  \
-			*alloc = 0;																		  \
-			*outsize = 0;																	  \
-			return NULL;									  								  \
-		}																					  \
-		have = ZLIBCHUNK - st.avail_out;													  \
-		if ((*alloc - *outsize) < have)														  \
-		{																					  \
-			*alloc += ZLIBCHUNK;															  \
-			if ((str = (unsigned char *)realloc(str,*alloc * sizeof(unsigned char))) == NULL) \
-				return NULL;												  				  \
-		}										 											  \
-		memcpy(str + *outsize,out,have);													  \
-		*outsize += have;																	  \
-	} while (st.avail_out == 0);															  \
-	p += (x);
-
-#define CALL_ZLIB_INFLATE(x)  unsigned char out[ZLIBCHUNK];							          \
-	st.avail_in = (x) * sizeof(unsigned char);												  \
-	st.next_in = (Bytef *)p;																  \
-	insize -= (x);																			  \
-	do																						  \
-	{																						  \
-		size_t have;																		  \
-		st.avail_out = ZLIBCHUNK;															  \
-		st.next_out = (Bytef *)out;															  \
-		ret = inflate(&st,Z_NO_FLUSH);														  \
-		if ((ret != Z_OK)  && (ret != Z_STREAM_END))										  \
-		{																				      \
-			inflateEnd(&st);																  \
-			free(str);																		  \
-			*alloc = 0;																		  \
-			*outsize = 0;																	  \
-			return NULL;																	  \
-		}																					  \
-		have = ZLIBCHUNK - st.avail_out;													  \
-		if ((*alloc - *outsize) < have)														  \
-		{																					  \
-			*alloc += ZLIBCHUNK;															  \
-			if ((str = (unsigned char *)realloc(str,*alloc * sizeof(unsigned char))) == NULL) \
-				return NULL;															      \
-		}																					  \
-		memcpy(str + *outsize,out,have);													  \
-		*outsize += have;																	  \
-	} while (st.avail_out == 0);															  \
-	p += (x);
-
-/*
   Compress and uncompress with zlib
 */
 unsigned char *zlib_compress_data(unsigned char *data, size_t insize, size_t * outsize, size_t * alloc)
 {
-	z_stream st;
-	unsigned char *str, *p;
-	int flush, ret;
-
-	*outsize = 0;
-	*alloc = 0;
-	if (insize == 0)
+	unsigned char *text;
+	z_stream defstream;
+    defstream.zalloc = Z_NULL;
+    defstream.zfree = Z_NULL;
+    defstream.opaque = Z_NULL;
+    defstream.avail_in = insize;
+    defstream.next_in = (Bytef *)data;
+    defstream.avail_out = (uInt)(insize);
+    if ((text = (unsigned char *)calloc(insize,sizeof(unsigned char))) == NULL)
 		return NULL;
-
-	st.zalloc = Z_NULL;
-	st.zfree = Z_NULL;
-	st.opaque = Z_NULL;
-	if (deflateInit(&st, Z_BEST_COMPRESSION) != Z_OK)
-		return NULL;
-
-	*alloc = 2 * ZLIBCHUNK;
-	if ((str =
-	     (unsigned char *)calloc(*alloc, sizeof(unsigned char))) == NULL)
-		return NULL;
-
-	p = data;
-	while (insize > ZLIBCHUNK)
-	{
-		CALL_ZLIB_DEFLATE(ZLIBCHUNK);
-	}
-	if (insize > 0)
-	{
-		CALL_ZLIB_DEFLATE(insize);
-	}
-	deflateEnd(&st);
-	return str;
+    defstream.next_out = (Bytef *)text;
+    deflateInit(&defstream, Z_BEST_COMPRESSION);
+    deflate(&defstream, Z_FINISH);
+    deflateEnd(&defstream);
+    *outsize = defstream.total_out;
+	*alloc = insize;
+	return text;	
 }
 
-unsigned char *zlib_uncompress_data(unsigned char *data, size_t insize, size_t * outsize, size_t * alloc)
+/*
+  Compress and uncompress with zlib
+*/
+unsigned char *zlib_uncompress_data(unsigned char *data, size_t insize, size_t outsize)
 {
-	z_stream st;
-	unsigned char *str, *p;
-	int ret;
-
-	*outsize = 0;
-	*alloc = 0;
-	if (insize == 0)
+	unsigned char *text;
+	z_stream infstream;
+    infstream.zalloc = Z_NULL;
+    infstream.zfree = Z_NULL;
+    infstream.opaque = Z_NULL;
+    infstream.avail_in = (uInt)insize;
+    infstream.next_in = (Bytef *)data;
+    if ((text = (unsigned char *)calloc(outsize,sizeof(unsigned char))) == NULL)
 		return NULL;
-
-	st.zalloc = Z_NULL;
-	st.zfree = Z_NULL;
-	st.opaque = Z_NULL;
-	if (inflateInit(&st) != Z_OK)
-		return NULL;
-
-	*alloc = ZLIBCHUNK;
-	if ((str =
-	     (unsigned char *)calloc(*alloc, sizeof(unsigned char))) == NULL)
-		return NULL;
-
-	p = data;
-	while (insize > ZLIBCHUNK)
+    infstream.avail_out = (uInt)outsize;
+    infstream.next_out = (Bytef *)text;
+    inflateInit(&infstream);
+    inflate(&infstream, Z_NO_FLUSH);
+    inflateEnd(&infstream);
+    if (infstream.total_out != outsize)
 	{
-		CALL_ZLIB_INFLATE(ZLIBCHUNK);
+		freeString(text);
+		return NULL;
 	}
-	if (insize > 0)
-	{
-		CALL_ZLIB_INFLATE(insize);
-	}
-	inflateEnd(&st);
-	return str;
+	return text;
 }
 
 /*
@@ -1156,7 +1084,7 @@ void getRandomHMACSecret(unsigned char *hmacsecret, unsigned char *data, size_t 
 int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type)
 {
 	char *passphrase;
-	size_t passlen, nbytes, alloc;
+	size_t passlen, nbytes, alloc, usize;
 	unsigned char *text;
 	uint8_t keys[KDFLENKEYS];
 	unsigned char hmac[HMAC_SHA512_DIGEST_LENGTH];
@@ -1170,7 +1098,6 @@ int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 	ret = ENCRYPTION_AES_ERROR;
 	if ((st == NULL) || (st->data == NULL) || (st->used == 0))
 		goto final;
-
 	/*
 		Get the random salt
 	*/
@@ -1220,6 +1147,7 @@ int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 	{
 		if ((text = zlib_compress_data(st->data, st->used, &nbytes, &alloc)) == NULL)
 			goto final;
+		usize = st->used;
 		stSetDataInStack(st, text, nbytes, alloc);
 	}
 
@@ -1251,6 +1179,7 @@ int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		if (! textToHMAC512(text, st->used, hmacsecret, 64, hmac))
 			goto final;
 	}
+
 	memset(keys, 0, KDFLENKEYS);
 	/*
 		Set the stack with encrypted content, the salt and the hmac
@@ -1259,6 +1188,7 @@ int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		goto final;
 	if (! stWriteOctetString(st, text, nblocks * AES_BLOCK_SIZE))
 		goto final;
+
 	if (! stWriteOctetString(st, salt, SALTLEN))
 		goto final;
 	if(mode & STACKHMAC)
@@ -1267,6 +1197,8 @@ int encryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		goto final;
 	}
 	freeString(text);
+	if (!stWriteDigit(st, usize))
+		goto final;
 	if (!stWriteStartSequence(st))
 		goto final;
 
@@ -1291,7 +1223,7 @@ final:
 int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t mode, uint8_t type)
 {
 	char *passphrase;
-	size_t passlen, nbytes;
+	size_t passlen, nbytes, outsize;
 	unsigned int key_schedule[60];
 	int ret, error, passwd;
 	uint8_t keys[KDFLENKEYS];
@@ -1344,6 +1276,10 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		goto final;
 	if (length != stBytesRemaining(st))
 		goto final;
+	outsize = stReadDigit(st, &error);
+	if (error != 0)
+		goto final;	
+
 	if (mode & STACKHMAC)
 	{
 		if ((s = stReadOctetString(st, &length, &error)) == NULL)
@@ -1380,6 +1316,7 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 		goto final;
 	if ((length == 0) || (error != 0))
 		goto final;
+
 	stSetDataInStack(st, text, length, length);
 	size_t nblocks = st->used / AES_BLOCK_SIZE;
 	text = NULL;
@@ -1405,27 +1342,25 @@ int decryptStackAES(Stack st, unsigned char *secret, size_t secretlen, uint8_t m
 	aes_decrypt_cbc(st->data, nblocks * AES_BLOCK_SIZE, text, key_schedule, 256, keys + 32);
 	stSetDataInStack(st, text, nblocks * AES_BLOCK_SIZE, nblocks * AES_BLOCK_SIZE);
 
+
 	/*
 		Unpadding
 	*/
 	uint8_t padding = (uint8_t)(st->data[st->used - 1]);
 	st->used -= padding;
 	memset(st->data + st->used, 0, padding);
-
 	/*
 		Uncompress
 	*/
 	if (mode & STACKCOMPRESS)
 	{
-		if ((text = zlib_uncompress_data(st->data, st->used, &nbytes, &length)) == NULL)
-		{
-			if (passwd == 1)
-				ret = ENCRYPTION_AES_WRONG_PASSWORD;
+		if ((text = zlib_uncompress_data(st->data, st->used, outsize)) == NULL) 
+		{	
+			ret = ZLIB_UNCOMPRESS_ERROR;
 			goto final;
 		}
-		stSetDataInStack(st, text, nbytes, length);
+		stSetDataInStack(st, text, outsize, outsize);
 	}
-
 	ret = ENCRYPTION_AES_OK;
 
 final:
