@@ -752,6 +752,6 @@ void printDigitsOfBigInteger(BigInteger n)
 {
 	size_t i;
 	for (i = 0; i < n->used; i++)
-		printf("%lu ",n->digits[i]);
+		printf("%llu ",n->digits[i]);
 	printf("\n");
 }
