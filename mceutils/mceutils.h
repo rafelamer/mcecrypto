@@ -125,6 +125,12 @@ void textToSHA512(unsigned char *text, size_t len, unsigned char *sha);
 void printBytesInHexadecimal(unsigned char *text, size_t len);
 
 /*
+  Text to SHA256 or SHA512 using SHA3
+ */
+int textToSHAIII256(unsigned char *text, size_t len, int use_keccak, unsigned char *sha);
+int textToSHAIII512(unsigned char *text, size_t len, int use_keccak, unsigned char *sha);
+
+/*
   Text to HMAC256 or HMAC512
 */
 int textToHMAC256(unsigned char *text, size_t tlen, unsigned char *key, size_t klen, unsigned char *hmac);
@@ -133,7 +139,6 @@ int textToHMAC512(unsigned char *text, size_t tlen, unsigned char *key, size_t k
 /*
   Password-Based Key Derivation Function
  */
-
 int pbkdf2_hmac_sha256(const uint8_t *password, size_t password_len, const uint8_t *salt, size_t salt_len,
                         uint32_t iterations, uint8_t *derived_key, size_t key_len);
 int pbkdf2_hmac_sha512(const uint8_t *password, size_t password_len, const uint8_t *salt, size_t salt_len,

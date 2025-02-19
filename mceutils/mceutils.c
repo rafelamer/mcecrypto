@@ -31,6 +31,7 @@
 #include <config.h>
 #include <sha512.h>
 #include <sha256.h>
+#include <sha3.h>
 #include <hmac.h>
 #include <aes.h>
 #include <memxor.h>
@@ -841,6 +842,55 @@ void printBytesInHexadecimal(unsigned char *text, size_t len)
 }
 
 /*
+  Text to SHA256 or SHA512 using SHA3
+ */
+ int textToSHAIII256(unsigned char *text, size_t len, int use_keccak, unsigned char *sha)
+ {
+	sha3_context ctx;
+	const uint8_t *hash = NULL;
+	int ret = 0;
+
+	sha3_Init256(&ctx);
+	if (use_keccak)
+	{
+		enum SHA3_FLAGS flags2 = sha3_SetFlags(&ctx, SHA3_FLAGS_KECCAK);
+		if (flags2 != SHA3_FLAGS_KECCAK )
+			goto final; 	
+	}
+	sha3_Update(&ctx, (void const *)text, len);
+    if ((hash = sha3_Finalize(&ctx)) == NULL)
+		goto final;
+	memcpy(sha, hash, 256/8);
+	ret = 1;
+
+final:
+	return ret;
+}
+
+ int textToSHAIII512(unsigned char *text, size_t len, int use_keccak, unsigned char *sha)
+ {
+	sha3_context ctx;
+	const uint8_t *hash = NULL;
+	int ret = 0;
+
+	sha3_Init512(&ctx);
+	if (use_keccak)
+	{
+		enum SHA3_FLAGS flags2 = sha3_SetFlags(&ctx, SHA3_FLAGS_KECCAK);
+		if (flags2 != SHA3_FLAGS_KECCAK )
+			goto final;
+	}
+	sha3_Update(&ctx, (void const *)text, len);
+    if ((hash = sha3_Finalize(&ctx)) == NULL)
+		goto final;
+	memcpy(sha, hash, 512/8);
+	ret = 1;
+
+final:
+	return ret;	
+ }
+
+ /*
   Text to HMAC256 or HMAC512
  */
 int textToHMAC256(unsigned char *text, size_t tlen, unsigned char *key, size_t klen, unsigned char *hmac)
