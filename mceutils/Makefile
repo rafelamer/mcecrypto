@@ -2,7 +2,7 @@ CFLAGS = -g -fPIC -I. -I../mceintegers -O3
 CC = gcc
 
 OBJECTS = aes.o base64.o mceutils.o hmac-sha1.o hmac-sha256.o \
-		  hmac-sha512.o memxor.o sha1.o sha256.o  sha512.o
+		  hmac-sha512.o memxor.o sha1.o sha256.o sha512.o sha3.o
 
 INCLUDES = mceutils.h
 TARGET = libmceutils.so.1.0.0
