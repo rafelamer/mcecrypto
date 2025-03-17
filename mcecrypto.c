@@ -1,6 +1,30 @@
+/**************************************************************************************
+* Filename:   mcecrypto.c
+* Author:     Rafel Amer (rafel.amer AT upc.edu)
+* Copyright:  Rafel Amer 2018-2025
+* Disclaimer: This code is presented "as is" and it has been written to
+*             implement the RSA and ECC encryption and decryption algorithm for
+*             educational purposes and should not be used in contexts that
+*             need cryptographically secure implementation
+*
+* License:    This software is free software; you can redistribute it and/or
+*             modify it under the terms of either:
+*
+*             1 the GNU Lesser General Public License as published by the Free
+*               Software Foundation; either version 3 of the License, or (at your
+*               option) any later version.
+*
+*             or
+*
+*             2 the GNU General Public License as published by the Free Software
+*               Foundation; either version 2 of the License, or (at your option)
+*               any later version.
+*
+*	      See https://www.gnu.org/licenses/
+***************************************************************************************/
 #include <mcecrypto.h>
 #include <stdlib.h>
-#include "cmdline.h"
+#include <cmdline.h>
 
 int main(int argc, char **argv)
 {
@@ -21,19 +45,19 @@ int main(int argc, char **argv)
 		goto final;
 	}
 	/*
-	
-	
-	
+
+
+
 		List elliptic curves
 	*/
-	if (ai.list_flag) 
+	if (ai.list_flag)
 	{
 		size_t i;
 		EllipticCurves ecs = NULL;
 
 		if (ai.infile_given || ai.outfile_given || ai.encrypt_given || ai.decrypt_given ||
 		    ai.ascii_given || ai.keyfile_given || ai.keytype_given || ai.sign_flag ||
-		    ai.verify_flag || ai.ec_given || ai.bits_given || ai.noaes_flag) 
+		    ai.verify_flag || ai.ec_given || ai.bits_given || ai.noaes_flag)
 		{
 			fprintf(stderr, "Wrong combination of parameters\n");
 			goto final;
@@ -58,7 +82,7 @@ int main(int argc, char **argv)
 
 
 
-	
+
 	   Process the different options
 	   1. Generate a pair of public and private RSA or ECC key
 	 */
@@ -82,18 +106,18 @@ int main(int argc, char **argv)
 				name = ai.outfile_arg;
 			else
 				name = keyRSAName;
-			if (generateAndSavePairRSAKeys(bits,name,!ai.noaes_flag)) 
+			if (generateAndSavePairRSAKeys(bits,name,!ai.noaes_flag))
 			{
 				printf("Public private RSA key pair generated successfully\n");
 				ret = EXIT_SUCCESS;
-			} 
-			else 
+			}
+			else
 			{
 				fprintf(stderr,"Error generating a private public RSA key pair\n");
 			}
 		}
 		else if (ai.ec_given)
-		{	
+		{
 			EllipticCurves ecs = NULL;
 			EllipticCurve ec;
 			if ((ecs = initNISTEllipticCurves()) == NULL)
@@ -110,13 +134,13 @@ int main(int argc, char **argv)
 				name = ai.outfile_arg;
 			else
 				name = keyECCName;
-			
+
 			if (generateAndSavePairECCKeys(name, ec, !ai.noaes_flag))
 			{
 				printf("Public private ECC key pair generated successfully\n");
 				ret = EXIT_SUCCESS;
-			} 
-			else 
+			}
+			else
 			{
 				fprintf(stderr,"Error generating a private public ECC key pair\n");
 			}
@@ -144,13 +168,13 @@ int main(int argc, char **argv)
 		char *infile, *outfile;
 		int r;
 
-		if (!ai.infile_given) 
+		if (!ai.infile_given)
 		{
 			fprintf(stderr,"You have to supply the name of the input file to encrypt: --infile=filename\n");
 			goto final;
 		}
 
-		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag || ai.sign_flag || ai.verify_flag || ai.ec_given) 
+		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag || ai.sign_flag || ai.verify_flag || ai.ec_given)
 		{
 			fprintf(stderr, "Wrong combination of parameters\n");
 			goto final;
@@ -161,7 +185,7 @@ int main(int argc, char **argv)
 		if (ai.outfile_given)
 			outfile = ai.outfile_arg;
 		r = encryptFileWithAES(infile, &outfile, KDFARGON2, ai.ascii_flag);
-		if (r == ENCRYPTION_AES_OK) 
+		if (r == ENCRYPTION_AES_OK)
 		{
 			printf("File encrypted successfuly. Encrypted file is %s\n",outfile);
 			ret = EXIT_SUCCESS;
@@ -194,7 +218,7 @@ int main(int argc, char **argv)
 
 	   2.2 Decrypts a file with the symetric algorithm AES
 	 */
-	if (ai.decrypt_flag && (!ai.keyfile_given)) 
+	if (ai.decrypt_flag && (!ai.keyfile_given))
 	{
 		char *infile, *outfile;
 		infile = outfile = NULL;
@@ -205,7 +229,7 @@ int main(int argc, char **argv)
 			goto final;
 		}
 
-		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.sign_flag || ai.verify_flag || ai.show_flag || ai.ec_given) 
+		if (ai.encrypt_flag || ai.bits_given || ai.genkey_flag || ai.sign_flag || ai.verify_flag || ai.show_flag || ai.ec_given)
 		{
 			fprintf(stderr, "Wrong combination of parameters\n");
 			goto final;
@@ -218,7 +242,7 @@ int main(int argc, char **argv)
 		}
 		outfile = ai.outfile_arg;
 		r = decryptFileWithAES(infile, outfile,KDFARGON2);
-		if (r == ENCRYPTION_AES_OK) 
+		if (r == ENCRYPTION_AES_OK)
 		{
 			printf("File decrypted successfuly. Decrypted file is %s\n",outfile);
 			ret = EXIT_SUCCESS;
@@ -250,7 +274,7 @@ int main(int argc, char **argv)
 	{
 		char *keyfile;
 		keyfile = ai.keyfile_arg;
-		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag || ai.ec_given || ai.encrypt_flag || ai.sign_flag || ai.ascii_flag) 
+		if (ai.decrypt_flag || ai.bits_given || ai.genkey_flag || ai.ec_given || ai.encrypt_flag || ai.sign_flag || ai.ascii_flag)
 		{
 			fprintf(stderr, "Wrong combination of parameters\n");
 			goto final;

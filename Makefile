@@ -1,8 +1,8 @@
-CFLAGS = -g -fPIC -I. -Imceutils -Imceintegers -Imcersa -Imceecc -O3
+CFLAGS = -fPIC -I. -Imceutils -Imceintegers -Imcersa -Imceecc -O3
 CC = gcc
 LIBS = -L/usr/local/lib -L. -lmcecrypto -largon2 -lz
 
-FOLDERS = mceintegers mceutils mceecc mcersa 
+FOLDERS = mceintegers mceutils mceecc mcersa
 OBJECTS = mceintegers/utils.o mceintegers/addition.o mceintegers/multiplication.o mceintegers/karatsuba.o \
 		  mceintegers/toomcook.o mceintegers/division.o mceintegers/modular.o mceintegers/gcd.o mceintegers/ec.o \
 		  mceintegers/ecpoints.o mceintegers/slidingwindow.o mceintegers/primes.o mceutils/aes.o mceutils/base64.o \
@@ -36,7 +36,7 @@ install: $(TARGET)
 	done
 	cp $(INCLUDES) /usr/local/include/
 	cp $(TARGET) /usr/local/lib/
-	ln -sf /usr/local/lib/$(TARGET) /usr/local/lib/$(NAME1) 
+	ln -sf /usr/local/lib/$(TARGET) /usr/local/lib/$(NAME1)
 	ln -sf /usr/local/lib/$(TARGET) /usr/local/lib/$(NAME2)
 	cp mcecrypto /usr/local/bin/
 	ldconfig
@@ -48,5 +48,3 @@ clean:
 	rm -f $(OBJECTS) $(TARGET)
 
 .PHONY: all $(FOLDERS)
-
-
