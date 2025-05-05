@@ -152,6 +152,24 @@ int main(int argc, char **argv)
 		}
 		goto final;
 	}
+	else if (ai.ec_given)
+	{
+		EllipticCurves ecs = NULL;
+		EllipticCurve ec;
+		if ((ecs = initNISTEllipticCurves()) == NULL)
+		{
+			fprintf(stderr,"Error reading the data for SECP and Brainpool elliptic curves\n");
+			goto final;
+		}
+		if ((ec = findEllipticCurveFronName(ai.ec_arg, ecs)) == NULL)
+		{
+			fprintf(stderr,"Error in the name of the elliptic curve\n");
+			goto final;
+		}
+		printEllipticCurve(ec);
+		ret = EXIT_SUCCESS;
+		goto final;
+	}
     /*
 
 

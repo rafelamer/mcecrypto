@@ -541,3 +541,20 @@ void printEllipticCurvePoint(EllipticCurvePoint P)
 {
     printEllipticCurvePointInBase(P,(DIGIT) 10);
 }
+
+void printEllipticCurve(EllipticCurve ec)
+{
+    printf("p = ");
+    printBigInteger(ec->p);
+    printf("a = ");
+    printBigInteger(ec->a);
+    printf("b = ");
+    printBigInteger(ec->b);
+    printf("G = (");
+    printOnlyBigIntegerInBase(ec->Gx,(DIGIT)10);
+    printf(",");
+    printOnlyBigIntegerInBase(ec->Gy, (DIGIT)10);
+    printf(")\n");
+    printf("n = ");
+    printBigInteger(ec->n);
+}

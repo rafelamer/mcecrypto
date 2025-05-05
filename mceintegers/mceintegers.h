@@ -271,5 +271,6 @@ BigInteger rightHandWeierstrassEquation(BigInteger x,EllipticCurve ec);
 EllipticCurvePoint randomEllipticCurvePoint(EllipticCurve ec);
 void printEllipticCurvePointInBase(EllipticCurvePoint P,DIGIT b);
 void printEllipticCurvePoint(EllipticCurvePoint P);
+void printEllipticCurve(EllipticCurve ec);
 
 #endif /* H_MCEINTEGERS_H_*/
