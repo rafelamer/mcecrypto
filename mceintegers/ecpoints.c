@@ -558,3 +558,20 @@ void printEllipticCurve(EllipticCurve ec)
     printf("n = ");
     printBigInteger(ec->n);
 }
+
+void printEllipticCurveInBase(EllipticCurve ec,DIGIT b)
+{
+    printf("p = ");
+    printBigIntegerInBase(ec->p, b);
+    printf("a = ");
+    printBigIntegerInBase(ec->a, b);
+    printf("b = ");
+    printBigIntegerInBase(ec->b, b);
+    printf("G = (");
+    printOnlyBigIntegerInBase(ec->Gx, b);
+    printf(",");
+    printOnlyBigIntegerInBase(ec->Gy, b);
+    printf(")\n");
+    printf("n = ");
+    printBigIntegerInBase(ec->n, b);
+}

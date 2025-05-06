@@ -272,5 +272,6 @@ EllipticCurvePoint randomEllipticCurvePoint(EllipticCurve ec);
 void printEllipticCurvePointInBase(EllipticCurvePoint P,DIGIT b);
 void printEllipticCurvePoint(EllipticCurvePoint P);
 void printEllipticCurve(EllipticCurve ec);
+void printEllipticCurveInBase(EllipticCurve ec,DIGIT b);
 
 #endif /* H_MCEINTEGERS_H_*/
